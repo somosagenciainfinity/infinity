@@ -860,7 +860,8 @@ app.post('/api/bulk-update-variant-values', async (c) => {
             let variantChanged = false
             const updatedOptions = []
             
-            // Check each option value in this variant
+            // Check each option value in this variant and calculate price extras
+            let totalPriceExtra = 0
             if (variant.option1 || variant.option2 || variant.option3) {
               const optionValues = [variant.option1, variant.option2, variant.option3].filter(Boolean)
               const optionNames = product.options?.map((opt: any) => opt.name) || []
@@ -875,16 +876,28 @@ app.post('/api/bulk-update-variant-values', async (c) => {
                   m.currentValue.toLowerCase() === currentValue.toLowerCase()
                 )
                 
-                if (mapping && mapping.newValue && mapping.newValue !== currentValue) {
-                  // Update the variant option value
-                  if (i === 0) variant.option1 = mapping.newValue
-                  else if (i === 1) variant.option2 = mapping.newValue  
-                  else if (i === 2) variant.option3 = mapping.newValue
+                if (mapping) {
+                  // Check if value should be changed
+                  if (mapping.newValue && mapping.newValue !== currentValue) {
+                    // Update the variant option value
+                    if (i === 0) variant.option1 = mapping.newValue
+                    else if (i === 1) variant.option2 = mapping.newValue  
+                    else if (i === 2) variant.option3 = mapping.newValue
+                    
+                    variantChanged = true
+                    hasChanges = true
+                    
+                    console.log(`🔄 ${product.title}: ${optionName} "${currentValue}" → "${mapping.newValue}"`)
+                  }
                   
-                  variantChanged = true
-                  hasChanges = true
-                  
-                  console.log(`🔄 ${product.title}: ${optionName} "${currentValue}" → "${mapping.newValue}"`)
+                  // Add price extra if specified
+                  if (mapping.priceExtra && mapping.priceExtra > 0) {
+                    totalPriceExtra += mapping.priceExtra
+                    variantChanged = true
+                    hasChanges = true
+                    
+                    console.log(`💰 ${product.title}: Preço extra +R$ ${mapping.priceExtra} para ${optionName}="${mapping.newValue || currentValue}"`)
+                  }
                 }
               }
             }
@@ -892,11 +905,20 @@ app.post('/api/bulk-update-variant-values', async (c) => {
             // Update variant if changed
             if (variantChanged) {
               try {
-                const updateData = {
+                const updateData: any = {
                   id: variant.id,
                   option1: variant.option1,
                   option2: variant.option2 || null,
                   option3: variant.option3 || null
+                }
+                
+                // Apply price extra if any
+                if (totalPriceExtra > 0) {
+                  const currentPrice = parseFloat(variant.price) || 0
+                  const newPrice = (currentPrice + totalPriceExtra).toFixed(2)
+                  updateData.price = newPrice
+                  
+                  console.log(`💰 ${product.title}: Preço atualizado de R$ ${variant.price} para R$ ${newPrice} (+R$ ${totalPriceExtra.toFixed(2)})`)
                 }
                 
                 const updateResponse = await shopifyRequest(
