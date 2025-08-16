@@ -811,6 +811,153 @@ app.post('/api/bulk-update-variant-titles', async (c) => {
   }
 })
 
+// Bulk update variant values
+app.post('/api/bulk-update-variant-values', async (c) => {
+  try {
+    const { shop, accessToken, valueMappings, scope, selectedProductIds } = await c.req.json()
+    
+    if (!shop || !accessToken || !valueMappings || valueMappings.length === 0) {
+      return c.json({ error: 'Parâmetros obrigatórios: shop, accessToken, valueMappings' }, 400)
+    }
+    
+    // Validate scope parameters
+    if (scope === 'selected' && (!selectedProductIds || selectedProductIds.length === 0)) {
+      return c.json({ error: 'Para escopo "selected", selectedProductIds é obrigatório' }, 400)
+    }
+    
+    // Rate limiting for bulk operations
+    if (!rateLimit(`bulk-variant-values:${shop}`, 5, 300000)) { // 5 requests per 5 minutes
+      return c.json({ error: 'Rate limit exceeded for bulk variant value operations' }, 429)
+    }
+    
+    // Get products based on scope
+    let productsToProcess = []
+    if (scope === 'all') {
+      productsToProcess = await getAllProducts(shop, accessToken, 250)
+    } else {
+      // Get only selected products
+      const allProducts = await getAllProducts(shop, accessToken, 250)
+      productsToProcess = allProducts.filter(product => 
+        selectedProductIds.includes(product.id.toString()) || selectedProductIds.includes(product.id)
+      )
+    }
+    
+    let updatedCount = 0
+    let failedCount = 0
+    const results: any[] = []
+    
+    console.log(`🎯 Processando valores de variantes em ${productsToProcess.length} produtos (escopo: ${scope})`)
+    
+    // Process each product
+    for (const product of productsToProcess) {
+      try {
+        let hasChanges = false
+        const updatedVariants = []
+        
+        // Process each variant
+        if (product.variants && product.variants.length > 0) {
+          for (const variant of product.variants) {
+            let variantChanged = false
+            const updatedOptions = []
+            
+            // Check each option value in this variant
+            if (variant.option1 || variant.option2 || variant.option3) {
+              const optionValues = [variant.option1, variant.option2, variant.option3].filter(Boolean)
+              const optionNames = product.options?.map((opt: any) => opt.name) || []
+              
+              for (let i = 0; i < optionValues.length; i++) {
+                const currentValue = optionValues[i]
+                const optionName = optionNames[i]
+                
+                // Find matching value mapping
+                const mapping = valueMappings.find((m: any) => 
+                  m.optionName === optionName && 
+                  m.currentValue.toLowerCase() === currentValue.toLowerCase()
+                )
+                
+                if (mapping && mapping.newValue && mapping.newValue !== currentValue) {
+                  // Update the variant option value
+                  if (i === 0) variant.option1 = mapping.newValue
+                  else if (i === 1) variant.option2 = mapping.newValue  
+                  else if (i === 2) variant.option3 = mapping.newValue
+                  
+                  variantChanged = true
+                  hasChanges = true
+                  
+                  console.log(`🔄 ${product.title}: ${optionName} "${currentValue}" → "${mapping.newValue}"`)
+                }
+              }
+            }
+            
+            // Update variant if changed
+            if (variantChanged) {
+              try {
+                const updateData = {
+                  id: variant.id,
+                  option1: variant.option1,
+                  option2: variant.option2 || null,
+                  option3: variant.option3 || null
+                }
+                
+                const updateResponse = await shopifyRequest(
+                  shop, 
+                  accessToken, 
+                  `products/${product.id}/variants/${variant.id}.json`, 
+                  'PUT',
+                  { variant: updateData }
+                )
+                
+                updatedVariants.push(variant)
+                
+              } catch (variantError) {
+                console.error(`❌ Erro ao atualizar variante ${variant.id}:`, variantError)
+                failedCount++
+              }
+            }
+          }
+        }
+        
+        if (hasChanges && updatedVariants.length > 0) {
+          updatedCount++
+          results.push({
+            success: true,
+            productId: product.id,
+            title: product.title,
+            changes: `${updatedVariants.length} variantes atualizadas`
+          })
+          
+          console.log(`✅ ${product.title}: ${updatedVariants.length} variantes atualizadas`)
+        }
+        
+      } catch (error) {
+        failedCount++
+        results.push({
+          success: false,
+          productId: product.id,
+          title: product.title,
+          error: error instanceof Error ? error.message : 'Erro desconhecido'
+        })
+        
+        console.error(`❌ Erro ao processar produto ${product.id}:`, error)
+      }
+    }
+    
+    console.log(`🎉 VALORES DE VARIANTES ATUALIZADOS: ${updatedCount} produtos, ${failedCount} falhas`)
+    
+    return c.json({ 
+      success: true,
+      totalProducts: productsToProcess.length,
+      updatedCount,
+      failedCount,
+      results: results.slice(0, 50) // Limit results for performance
+    })
+  } catch (error) {
+    return c.json({ 
+      error: 'Erro na atualização em massa de valores de variantes: ' + (error instanceof Error ? error.message : 'Erro desconhecido')
+    }, 500)
+  }
+})
+
 // Main page with complete interface
 app.get('/', (c) => {
   return c.html(`

@@ -1072,24 +1072,43 @@ class InfinityBulkManager {
                 }
             }
             
-            // TODO: Apply value changes (this would need a new API endpoint)
+            // Apply value changes if any
             let valueResults = null;
+            if (valueChanges.length > 0) {
+                const valueResponse = await fetch('/api/bulk-update-variant-values', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        shop: this.shopName,
+                        accessToken: this.accessToken,
+                        valueMappings: valueChanges,
+                        scope: loadScopeAll ? 'all' : 'selected',
+                        selectedProductIds: selectedProductIds
+                    })
+                });
+                
+                valueResults = await valueResponse.json();
+                if (!valueResponse.ok) {
+                    throw new Error(valueResults.error || 'Erro na atualização de valores');
+                }
+            }
             
             // Handle different scenarios
-            if (titleResults && valueChanges.length > 0) {
-                // Both titles and values were changed - titles succeeded, values not implemented
+            if (titleResults && valueResults) {
+                // Both titles and values were changed successfully
                 this.closeVariantTitlesModal();
                 this.showVariantTitlesResults(titleResults);
-                this.showSuccess('✅ Títulos de variantes atualizados com sucesso! Edição de valores será implementada em breve.');
+                this.showSuccess(`✅ Alterações aplicadas com sucesso! Títulos: ${titleResults.updatedCount} produtos, Valores: ${valueResults.updatedCount} produtos atualizados.`);
             } else if (titleResults) {
                 // Only titles were changed and succeeded
                 this.closeVariantTitlesModal();
                 this.showVariantTitlesResults(titleResults);
-            } else if (valueChanges.length > 0) {
-                // Only value changes were requested (not yet implemented)
-                // DON'T close modal, show info message within the modal
-                this.showVariantMessage('ℹ️ A edição de valores de variantes será implementada em breve. Por enquanto, você pode alterar apenas os títulos das opções (ex: "SIZE" → "Tamanho").', 'info');
-                return; // Don't close modal, let user try again or close manually
+            } else if (valueResults) {
+                // Only values were changed and succeeded
+                this.closeVariantTitlesModal();
+                this.showVariantValuesResults(valueResults);
             }
             
             // Note: Manual reload removed to prevent automatic reloading
@@ -1161,6 +1180,85 @@ class InfinityBulkManager {
                                 <div class="text-right">
                                     <span class="text-green-600 text-sm"><i class="fas fa-check mr-1"></i>Sucesso</span>
                                     <div class="text-xs text-gray-500">Variantes: ${result.changes}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                        ${data.results.filter(r => !r.success).map(result => `
+                            <div class="flex items-center justify-between p-3 rounded bg-red-50 border border-red-200">
+                                <div>
+                                    <span class="font-medium text-gray-800">${result.title}</span>
+                                    <div class="text-sm text-gray-600">ID: ${result.productId}</div>
+                                </div>
+                                <span class="text-red-600 text-sm" title="${result.error}"><i class="fas fa-times mr-1"></i>Erro</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : ''}
+        `;
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    showVariantValuesResults(data) {
+        const modal = document.getElementById('results-modal');
+        const content = document.getElementById('results-content');
+        
+        const updatedCount = data.updatedCount || 0;
+        const failedCount = data.failedCount || 0;
+        const totalProducts = data.totalProducts || 0;
+        
+        content.innerHTML = `
+            <div class="mb-6">
+                <h4 class="text-lg font-bold text-gray-800 mb-4">
+                    <i class="fas fa-dollar-sign mr-2"></i>
+                    Resultados da Atualização de Valores de Variantes
+                </h4>
+                
+                <div class="grid grid-cols-4 gap-4 mb-4">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-blue-600">${totalProducts}</div>
+                        <div class="text-sm text-blue-600">Produtos Analisados</div>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-green-600">${updatedCount}</div>
+                        <div class="text-sm text-green-600">Produtos Atualizados</div>
+                    </div>
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-red-600">${failedCount}</div>
+                        <div class="text-sm text-red-600">Falhas</div>
+                    </div>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-yellow-600">${totalProducts - updatedCount - failedCount}</div>
+                        <div class="text-sm text-yellow-600">Sem Alteração</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-gray-700">Progresso</span>
+                        <span class="text-sm text-gray-600">${updatedCount}/${totalProducts}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-500 h-2 rounded-full" style="width: ${totalProducts > 0 ? (updatedCount/totalProducts)*100 : 0}%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            ${data.results && data.results.length > 0 ? `
+                <div class="max-h-64 overflow-y-auto">
+                    <h5 class="font-medium text-gray-800 mb-3">Produtos Atualizados (${data.results.length} primeiros):</h5>
+                    <div class="space-y-2">
+                        ${data.results.filter(r => r.success).map(result => `
+                            <div class="flex items-center justify-between p-3 rounded bg-green-50 border border-green-200">
+                                <div>
+                                    <span class="font-medium text-gray-800">${result.title}</span>
+                                    <div class="text-sm text-gray-600">ID: ${result.productId}</div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-green-600 text-sm"><i class="fas fa-check mr-1"></i>Sucesso</span>
+                                    <div class="text-xs text-gray-500">${result.changes}</div>
                                 </div>
                             </div>
                         `).join('')}
