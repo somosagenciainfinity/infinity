@@ -47,7 +47,7 @@ class InfinityBulkManager {
         document.getElementById('close-modal').addEventListener('click', () => this.closeBulkModal());
         document.getElementById('cancel-bulk').addEventListener('click', () => this.closeBulkModal());
         document.getElementById('cancel-bulk-top').addEventListener('click', () => this.closeBulkModal()); // Novo botão topo
-        document.getElementById('apply-bulk-top').addEventListener('click', (e) => this.submitBulkEdit(e)); // Novo botão topo
+        document.getElementById('apply-bulk-top').addEventListener('click', (e) => this.submitBulkEditFromButton(e)); // Novo botão topo
         document.getElementById('bulk-edit-form').addEventListener('submit', (e) => this.submitBulkEdit(e));
         
         // Variant titles modal controls
@@ -609,6 +609,16 @@ class InfinityBulkManager {
         this.closeModal('bulk-modal');
     }
 
+    // Função para botão do topo (não é submit de form)
+    async submitBulkEditFromButton(e) {
+        e.preventDefault();
+        
+        // Simular evento de submit do form
+        const form = document.getElementById('bulk-edit-form');
+        const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+        form.dispatchEvent(submitEvent);
+    }
+
     async submitBulkEdit(e) {
         e.preventDefault();
         
@@ -684,10 +694,8 @@ class InfinityBulkManager {
                 this.closeBulkModal();
                 this.showResults(data);
                 
-                // Reload products to show updated data
-                setTimeout(() => {
-                    this.loadProducts();
-                }, 2000);
+                // Remove auto-reload - let user manually refresh if needed
+                // Products will stay visible after editing
             } else {
                 throw new Error(data.error || 'Erro na atualização em massa');
             }
@@ -854,12 +862,23 @@ class InfinityBulkManager {
                 })
             });
             
-            const data = await response.json();
+            let data;
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                throw new Error('Resposta inválida do servidor: ' + jsonError.message);
+            }
             
             if (response.ok) {
                 this.variantData = data;
-                this.renderVariantOptions(data.optionStats);
-                this.renderVariantValues(data.optionStats, data.sampleVariants);
+                
+                // Verificar se os dados existem antes de renderizar
+                if (data.optionStats && typeof data.optionStats === 'object') {
+                    this.renderVariantOptions(data.optionStats);
+                    this.renderVariantValues(data.optionStats, data.sampleVariants || []);
+                } else {
+                    throw new Error('Dados de variantes inválidos recebidos');
+                }
                 
                 // Show data container and apply button
                 document.getElementById('variant-data-container').classList.remove('hidden');
