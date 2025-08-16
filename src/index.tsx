@@ -503,10 +503,15 @@ app.post('/api/bulk-update', async (c) => {
 // Analyze existing variants
 app.post('/api/analyze-variants', async (c) => {
   try {
-    const { shop, accessToken } = await c.req.json()
+    const { shop, accessToken, scope, selectedProductIds } = await c.req.json()
     
     if (!shop || !accessToken) {
       return c.json({ error: 'Parâmetros obrigatórios: shop e accessToken' }, 400)
+    }
+    
+    // Validate scope parameters
+    if (scope === 'selected' && (!selectedProductIds || selectedProductIds.length === 0)) {
+      return c.json({ error: 'Para escopo "selected", selectedProductIds é obrigatório' }, 400)
     }
     
     // Rate limiting
@@ -514,14 +519,24 @@ app.post('/api/analyze-variants', async (c) => {
       return c.json({ error: 'Rate limit exceeded for variant analysis' }, 429)
     }
     
-    // Get all products
-    const allProducts = await getAllProducts(shop, accessToken, 250)
+    // Get products based on scope
+    let productsToAnalyze = []
+    if (scope === 'selected') {
+      const allProducts = await getAllProducts(shop, accessToken, 250)
+      productsToAnalyze = allProducts.filter(product => 
+        selectedProductIds.includes(product.id.toString()) || selectedProductIds.includes(product.id)
+      )
+      console.log(`🎯 Analisando variantes de ${productsToAnalyze.length} produtos selecionados`)
+    } else {
+      productsToAnalyze = await getAllProducts(shop, accessToken, 250)
+      console.log(`🌐 Analisando variantes de todos os ${productsToAnalyze.length} produtos`)
+    }
     
     // Analyze all variants
     const variantAnalysis: any = {}
     const optionStats: any = {}
     
-    allProducts.forEach(product => {
+    productsToAnalyze.forEach(product => {
       if (product.options && product.options.length > 0) {
         product.options.forEach((option: any) => {
           if (!optionStats[option.name]) {
@@ -574,7 +589,7 @@ app.post('/api/analyze-variants', async (c) => {
     
     return c.json({
       success: true,
-      totalProducts: allProducts.length,
+      totalProducts: productsToAnalyze.length,
       optionStats: optionStats,
       variantCount: Object.keys(variantAnalysis).length,
       sampleVariants: Object.values(variantAnalysis).slice(0, 50) // Sample for performance
@@ -1026,6 +1041,22 @@ app.get('/', (c) => {
                             <p class="text-blue-700 text-sm mb-3">
                                 Altere os nomes das opções (ex: "Size" → "Tamanho") em todos os produtos.
                             </p>
+                            
+                            <!-- Seletor de Escopo para Carregamento -->
+                            <div class="mb-4">
+                                <h5 class="text-sm font-medium text-blue-800 mb-2">Carregar variantes de:</h5>
+                                <div class="space-y-2">
+                                    <label class="flex items-center text-sm">
+                                        <input type="radio" name="load-scope" value="all" id="load-scope-all" class="mr-2" checked>
+                                        <span>Todos os produtos da loja</span>
+                                    </label>
+                                    <label class="flex items-center text-sm">
+                                        <input type="radio" name="load-scope" value="selected" id="load-scope-selected" class="mr-2">
+                                        <span id="load-scope-selected-text">Apenas produtos selecionados (0 produtos)</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
                             <button id="load-variant-data-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
                                 <i class="fas fa-search mr-2"></i>
                                 Carregar Variantes Existentes

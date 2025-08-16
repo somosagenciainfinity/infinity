@@ -47,7 +47,12 @@ class InfinityBulkManager {
         document.getElementById('close-modal').addEventListener('click', () => this.closeBulkModal());
         document.getElementById('cancel-bulk').addEventListener('click', () => this.closeBulkModal());
         document.getElementById('cancel-bulk-top').addEventListener('click', () => this.closeBulkModal()); // Mesmo comportamento
-        // O botão apply-bulk-top agora é type="submit" então será capturado pelo form submit
+        // Botão do topo precisa de event listener específico pois está fora do form
+        document.getElementById('apply-bulk-top').addEventListener('click', (e) => {
+            e.preventDefault();
+            // Simular submit do form
+            document.getElementById('bulk-edit-form').requestSubmit();
+        });
         document.getElementById('bulk-edit-form').addEventListener('submit', (e) => this.submitBulkEdit(e));
         
         // Variant titles modal controls
@@ -60,9 +65,13 @@ class InfinityBulkManager {
         document.getElementById('tab-titles').addEventListener('click', () => this.switchTab('titles'));
         document.getElementById('tab-values').addEventListener('click', () => this.switchTab('values'));
         
-        // Variant scope controls
+        // Variant scope controls (apply scope)
         document.getElementById('scope-all').addEventListener('change', () => this.updateVariantScopeInfo());
         document.getElementById('scope-selected').addEventListener('change', () => this.updateVariantScopeInfo());
+        
+        // Load scope controls
+        document.getElementById('load-scope-all').addEventListener('change', () => this.updateLoadScopeInfo());
+        document.getElementById('load-scope-selected').addEventListener('change', () => this.updateLoadScopeInfo());
         
         // Results modal controls
         document.getElementById('close-results-modal').addEventListener('click', () => this.closeResultsModal());
@@ -773,6 +782,7 @@ class InfinityBulkManager {
         
         // Update scope information
         this.updateVariantScopeInfo();
+        this.updateLoadScopeInfo();
     }
 
     resetVariantModal() {
@@ -826,6 +836,12 @@ class InfinityBulkManager {
         }
     }
 
+    updateLoadScopeInfo() {
+        const selectedCount = this.selectedProducts.size;
+        const loadScopeSelectedText = document.getElementById('load-scope-selected-text');
+        loadScopeSelectedText.textContent = `Apenas produtos selecionados (${selectedCount} produtos)`;
+    }
+
     async loadVariantData() {
         const loadBtn = document.getElementById('load-variant-data-btn');
         const loading = document.getElementById('loading-variants');
@@ -841,6 +857,16 @@ class InfinityBulkManager {
         loading.classList.remove('hidden');
         
         try {
+            // Verificar qual escopo foi selecionado
+            const loadScopeAll = document.getElementById('load-scope-all').checked;
+            const selectedProductIds = loadScopeAll ? null : Array.from(this.selectedProducts);
+            
+            // Validar se tem produtos selecionados quando necessário
+            if (!loadScopeAll && selectedProductIds.length === 0) {
+                this.showError('⚠️ Selecione pelo menos um produto na tabela para carregar apenas variantes dos produtos selecionados.');
+                return;
+            }
+            
             const response = await fetch('/api/analyze-variants', {
                 method: 'POST',
                 headers: {
@@ -848,7 +874,9 @@ class InfinityBulkManager {
                 },
                 body: JSON.stringify({
                     shop: this.shopName,
-                    accessToken: this.accessToken
+                    accessToken: this.accessToken,
+                    scope: loadScopeAll ? 'all' : 'selected',
+                    selectedProductIds: selectedProductIds
                 })
             });
             
