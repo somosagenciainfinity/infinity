@@ -1,0 +1,87 @@
+# Wrangler Configuration for Infinity Bulk Manager
+# Cloudflare Pages Project - Advanced Shopify Bulk Management Tool
+
+# Project Configuration
+name = "infinity-bulk-manager"
+compatibility_date = "2025-08-15"
+send_metrics = false
+
+# Build Configuration for Pages
+pages_build_output_dir = "dist"
+compatibility_flags = ["nodejs_compat"]
+
+# Node.js Compatibility (Required for Hono + TypeScript)
+node_compat = true
+
+# Observability and Logging
+[observability]
+enabled = true
+
+[observability.logs]
+enabled = true
+level = "info"
+
+# Environment Variables (Production)
+[env.production]
+name = "infinity-bulk-manager"
+
+# Environment Variables (Preview/Development)  
+[env.preview]
+name = "infinity-bulk-manager-preview"
+
+# Optional: KV Namespaces for Rate Limiting (Future Enhancement)
+# Uncomment when ready to implement production rate limiting
+# [[kv_namespaces]]
+# binding = "RATE_LIMIT_KV"
+# id = "your-kv-namespace-id"
+# preview_id = "your-preview-kv-namespace-id"
+
+# Optional: R2 Bucket for File Storage (Future Enhancement)
+# Uncomment if you need file storage capabilities
+# [[r2_buckets]]
+# binding = "ASSETS_BUCKET"  
+# bucket_name = "infinity-bulk-assets"
+# preview_bucket_name = "infinity-bulk-assets-preview"
+
+# Optional: D1 Database for Data Persistence (Future Enhancement)
+# Uncomment if you need database functionality
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "infinity-bulk-db"
+# database_id = "your-database-id"
+# preview_database_id = "your-preview-database-id"
+
+# Optional: AI Bindings for Enhanced Features (Future Enhancement)
+# Uncomment if you want to add AI-powered features
+# [ai]
+# binding = "AI"
+
+# Build Configuration
+[build]
+command = "npm run build"
+cwd = "."
+watch_dir = ["src", "public"]
+
+# Development Configuration
+[dev]
+ip = "0.0.0.0"
+port = 3000
+local_protocol = "http"
+upstream_protocol = "https"
+
+# Routes Configuration (Automatically handled by Pages)
+# Pages will automatically serve all routes through the _worker.js
+
+# Custom Headers for Security (Optional - can be configured via _headers file)
+# These are recommendations for production deployment
+
+# Cache Configuration
+[site]
+bucket = "./dist"
+
+# Wrangler Version Info
+# This configuration is compatible with Wrangler v3.88.0+
+# Updated: August 16, 2025
+# Project: Infinity Bulk Manager - Shopify Bulk Product Management
+# Repository: https://github.com/somosagenciainfinity/infinity
+# Tech Stack: Hono + TypeScript + Vite + Cloudflare Pages

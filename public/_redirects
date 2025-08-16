@@ -1,0 +1,12 @@
+# Redirects Configuration for Infinity Bulk Manager
+# Handle SPA routing and legacy URLs
+
+# Redirect old URLs (if any exist)
+# /old-path /new-path 301
+
+# Handle SPA routing - fallback for client-side routing
+# All unmatched routes go to the main app (handled by _worker.js)
+/* /index.html 200
+
+# Force HTTPS (handled automatically by Cloudflare Pages)
+# http://infinity-bulk-manager.pages.dev/* https://infinity-bulk-manager.pages.dev/:splat 301

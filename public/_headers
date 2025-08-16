@@ -1,0 +1,33 @@
+# Security Headers for Infinity Bulk Manager
+# Applied to all routes
+
+/*
+  # Security Headers
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()
+  
+  # CORS Headers for API Routes
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+  Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+  
+  # Cache Headers for Static Assets
+  Cache-Control: public, max-age=3600
+
+# API Routes - Extended CORS
+/api/*
+  Access-Control-Allow-Origin: *
+  Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH
+  Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-Shopify-Access-Token
+  Access-Control-Max-Age: 86400
+
+# Static Assets - Longer Cache
+/static/*
+  Cache-Control: public, max-age=31536000, immutable
+  
+# Favicon
+/favicon.ico
+  Cache-Control: public, max-age=86400

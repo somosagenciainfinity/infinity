@@ -27,7 +27,7 @@ pids
 
 # Cloudflare
 .wrangler/
-wrangler.toml
+# wrangler.toml - Keep configuration file in repo
 
 # IDE
 .vscode/
