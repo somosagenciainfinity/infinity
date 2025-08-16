@@ -9,6 +9,19 @@ class InfinityBulkManager {
         this.selectedProducts = new Set();
         this.collections = [];
         
+        // Progress monitoring
+        this.currentOperation = null;
+        this.progressData = {
+            analyzed: 0,
+            updated: 0,
+            failed: 0,
+            unchanged: 0,
+            total: 0,
+            status: 'Preparando processamento...'
+        };
+        this.progressInterval = null;
+        this.isProgressVisible = false;
+        
         this.initializeEventListeners();
     }
 
@@ -65,6 +78,11 @@ class InfinityBulkManager {
         // Results modal controls
         document.getElementById('close-results-modal').addEventListener('click', () => this.closeResultsModal());
         
+        // Progress modal controls
+        document.getElementById('close-progress-modal').addEventListener('click', () => this.closeProgressModal());
+        document.getElementById('cancel-progress').addEventListener('click', () => this.cancelProgress());
+        document.getElementById('hide-progress').addEventListener('click', () => this.hideProgressModal());
+        
         // Enable/disable form fields based on checkboxes
         this.setupFormFieldToggles();
         
@@ -95,7 +113,7 @@ class InfinityBulkManager {
     }
 
     setupModalClickOutside() {
-        const modals = ['bulk-modal', 'variant-titles-modal', 'results-modal'];
+        const modals = ['bulk-modal', 'variant-titles-modal', 'results-modal', 'progress-modal'];
         
         modals.forEach(modalId => {
             const modal = document.getElementById(modalId);
@@ -656,11 +674,26 @@ class InfinityBulkManager {
             return;
         }
         
-        // Show loading state
+        // Show loading state and create "Ver Detalhes" button
         const submitBtn = document.getElementById('apply-bulk');
         const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner loading-spinner mr-2"></i>Aplicando...';
+        submitBtn.innerHTML = '<i class="fas fa-spinner loading-spinner mr-2"></i>Processando...';
         submitBtn.disabled = true;
+        
+        // Initialize progress monitoring
+        const totalProducts = this.selectedProducts.size;
+        this.currentOperation = 'bulk-edit';
+        this.progressData = {
+            analyzed: 0,
+            updated: 0,
+            failed: 0,
+            unchanged: 0,
+            total: totalProducts,
+            status: 'Iniciando processamento em massa...'
+        };
+        
+        // Create "Ver Detalhes" button
+        this.createVerDetalhesButton('apply-bulk');
         
         try {
             const response = await fetch('/api/bulk-update', {
@@ -679,6 +712,13 @@ class InfinityBulkManager {
             const data = await response.json();
             
             if (response.ok) {
+                // Update progress with final results
+                this.progressData.updated = data.successful || 0;
+                this.progressData.failed = data.failed || 0;
+                this.progressData.unchanged = Math.max(0, totalProducts - this.progressData.updated - this.progressData.failed);
+                this.progressData.analyzed = totalProducts;
+                this.progressData.status = 'Processamento concluído!';
+                
                 this.closeBulkModal();
                 this.showResults(data);
                 
@@ -688,10 +728,17 @@ class InfinityBulkManager {
                 throw new Error(data.error || 'Erro na atualização em massa');
             }
         } catch (error) {
+            this.progressData.status = 'Erro no processamento: ' + error.message;
             this.showError('Erro na atualização em massa: ' + error.message);
         } finally {
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
+            
+            // Remove "Ver Detalhes" button after delay
+            setTimeout(() => {
+                this.removeVerDetalhesButton();
+                this.currentOperation = null;
+            }, 10000);
         }
     }
 
@@ -1044,6 +1091,32 @@ class InfinityBulkManager {
         applyBtn.innerHTML = '<i class="fas fa-spinner loading-spinner mr-2"></i>Processando...';
         applyBtn.disabled = true;
         
+        // Initialize progress monitoring for variants
+        const loadScopeAll = document.getElementById('load-scope-all').checked;
+        const totalProducts = loadScopeAll ? this.variantData?.totalProducts || this.allProducts.length : this.selectedProducts.size;
+        
+        this.progressData = {
+            analyzed: 0,
+            updated: 0,
+            failed: 0,
+            unchanged: 0,
+            total: totalProducts,
+            status: titleMappings.length > 0 && valueChanges.length > 0 ? 
+                'Processando títulos e valores das variantes...' :
+                titleMappings.length > 0 ? 'Processando títulos das variantes...' :
+                'Processando valores e preços das variantes...'
+        };
+        
+        // Determine operation type
+        const operationType = titleMappings.length > 0 && valueChanges.length > 0 ? 
+            'variant-titles-values' : 
+            titleMappings.length > 0 ? 'variant-titles' : 'variant-values';
+        
+        this.currentOperation = operationType;
+        
+        // Create "Ver Detalhes" button
+        this.createVerDetalhesButton('apply-variant-changes');
+        
         try {
             // Use the same scope that was used for loading variants
             const loadScopeAll = document.getElementById('load-scope-all').checked;
@@ -1052,6 +1125,8 @@ class InfinityBulkManager {
             // Apply title changes first if any
             let titleResults = null;
             if (titleMappings.length > 0) {
+                this.progressData.status = 'Processando títulos das variantes...';
+                
                 const titleResponse = await fetch('/api/bulk-update-variant-titles', {
                     method: 'POST',
                     headers: {
@@ -1070,11 +1145,20 @@ class InfinityBulkManager {
                 if (!titleResponse.ok) {
                     throw new Error(titleResults.error || 'Erro na atualização de títulos');
                 }
+                
+                // Update progress with title results
+                if (titleResults) {
+                    this.progressData.updated += titleResults.updatedCount || 0;
+                    this.progressData.failed += titleResults.failedCount || 0;
+                    this.progressData.analyzed = titleResults.totalProducts || 0;
+                }
             }
             
             // Apply value changes if any
             let valueResults = null;
             if (valueChanges.length > 0) {
+                this.progressData.status = 'Processando valores e preços das variantes...';
+                
                 const valueResponse = await fetch('/api/bulk-update-variant-values', {
                     method: 'POST',
                     headers: {
@@ -1093,7 +1177,27 @@ class InfinityBulkManager {
                 if (!valueResponse.ok) {
                     throw new Error(valueResults.error || 'Erro na atualização de valores');
                 }
+                
+                // Update progress with value results
+                if (valueResults) {
+                    // If we didn't process titles, use value results directly
+                    if (!titleResults) {
+                        this.progressData.updated = valueResults.updatedCount || 0;
+                        this.progressData.failed = valueResults.failedCount || 0;
+                        this.progressData.analyzed = valueResults.totalProducts || 0;
+                    } else {
+                        // Combine results (take max values as they might overlap)
+                        this.progressData.updated = Math.max(this.progressData.updated, valueResults.updatedCount || 0);
+                        this.progressData.failed = Math.max(this.progressData.failed, valueResults.failedCount || 0);
+                    }
+                }
             }
+            
+            // Calculate unchanged
+            this.progressData.unchanged = Math.max(0, 
+                this.progressData.total - this.progressData.updated - this.progressData.failed
+            );
+            this.progressData.status = 'Processamento concluído!';
             
             // Handle different scenarios
             if (titleResults && valueResults) {
@@ -1115,10 +1219,17 @@ class InfinityBulkManager {
             // User can manually reload products using the "Carregar Todos os Produtos" button if needed
             
         } catch (error) {
+            this.progressData.status = 'Erro no processamento: ' + error.message;
             this.showError('Erro nas alterações de variantes: ' + error.message);
         } finally {
             applyBtn.innerHTML = originalText;
             applyBtn.disabled = false;
+            
+            // Remove "Ver Detalhes" button after delay
+            setTimeout(() => {
+                this.removeVerDetalhesButton();
+                this.currentOperation = null;
+            }, 10000);
         }
     }
 
@@ -1384,6 +1495,171 @@ class InfinityBulkManager {
                 document.body.removeChild(notification);
             }, 300);
         }, 5000);
+    }
+
+    // === PROGRESS MODAL SYSTEM ===
+
+    showProgressModal(title, operation) {
+        this.currentOperation = operation;
+        this.isProgressVisible = true;
+        
+        // Reset progress data
+        this.progressData = {
+            analyzed: 0,
+            updated: 0,
+            failed: 0,
+            unchanged: 0,
+            total: 0,
+            status: 'Preparando processamento...'
+        };
+        
+        // Update modal
+        document.getElementById('progress-title').textContent = title;
+        this.updateProgressDisplay();
+        
+        // Show modal
+        const modal = document.getElementById('progress-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        
+        // Start progress monitoring
+        this.startProgressMonitoring();
+    }
+
+    hideProgressModal() {
+        const modal = document.getElementById('progress-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        this.isProgressVisible = false;
+        
+        // Keep monitoring in background
+        this.showNotification('Processamento continua em background. Use "Ver Detalhes" para acompanhar.', 'info');
+    }
+
+    closeProgressModal() {
+        this.hideProgressModal();
+        this.stopProgressMonitoring();
+    }
+
+    cancelProgress() {
+        if (this.currentOperation) {
+            // TODO: Implement actual cancellation logic
+            this.showNotification('Cancelamento solicitado. Aguarde...', 'info');
+            
+            // For now, just close the modal
+            this.closeProgressModal();
+            this.currentOperation = null;
+        }
+    }
+
+    updateProgressDisplay() {
+        const { analyzed, updated, failed, unchanged, total, status } = this.progressData;
+        
+        // Update counters
+        document.getElementById('progress-analyzed').textContent = analyzed;
+        document.getElementById('progress-updated').textContent = updated;
+        document.getElementById('progress-failed').textContent = failed;
+        document.getElementById('progress-unchanged').textContent = unchanged;
+        
+        // Update progress bar
+        const percentage = total > 0 ? Math.round((updated + failed + unchanged) / total * 100) : 0;
+        document.getElementById('progress-bar').style.width = `${percentage}%`;
+        document.getElementById('progress-text').textContent = `${updated + failed + unchanged}/${total}`;
+        
+        // Update status
+        document.getElementById('progress-status').innerHTML = `<i class="fas fa-cogs mr-2"></i>${status}`;
+    }
+
+    startProgressMonitoring() {
+        // Clear any existing interval
+        if (this.progressInterval) {
+            clearInterval(this.progressInterval);
+        }
+        
+        // Start monitoring every 1 second
+        this.progressInterval = setInterval(() => {
+            this.simulateProgressUpdate();
+        }, 1000);
+    }
+
+    stopProgressMonitoring() {
+        if (this.progressInterval) {
+            clearInterval(this.progressInterval);
+            this.progressInterval = null;
+        }
+    }
+
+    simulateProgressUpdate() {
+        // Just refresh the display with current progress data
+        // The actual progress data is updated by the real API calls
+        if (this.isProgressVisible) {
+            this.updateProgressDisplay();
+        }
+        
+        // Check if processing is complete
+        const processed = this.progressData.updated + this.progressData.failed + this.progressData.unchanged;
+        if (processed >= this.progressData.total && this.progressData.total > 0) {
+            this.stopProgressMonitoring();
+            
+            // Auto-close after 5 seconds if processing is complete
+            if (this.isProgressVisible && this.progressData.status.includes('concluído')) {
+                setTimeout(() => {
+                    this.closeProgressModal();
+                    this.showNotification('Processamento concluído com sucesso!', 'success');
+                }, 5000);
+            }
+        }
+    }
+
+    createVerDetalhesButton(targetButtonId) {
+        // Check if button already exists
+        if (document.getElementById('ver-detalhes-btn')) {
+            return;
+        }
+        
+        const targetButton = document.getElementById(targetButtonId);
+        if (!targetButton) return;
+        
+        // Create "Ver Detalhes" button
+        const verDetalhesBtn = document.createElement('button');
+        verDetalhesBtn.id = 'ver-detalhes-btn';
+        verDetalhesBtn.type = 'button';
+        verDetalhesBtn.className = 'ml-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors';
+        verDetalhesBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i>Ver Detalhes';
+        
+        verDetalhesBtn.addEventListener('click', () => {
+            if (this.currentOperation) {
+                this.showProgressModal(
+                    this.getProgressTitle(this.currentOperation),
+                    this.currentOperation
+                );
+            }
+        });
+        
+        // Insert after target button
+        targetButton.parentNode.insertBefore(verDetalhesBtn, targetButton.nextSibling);
+    }
+
+    removeVerDetalhesButton() {
+        const btn = document.getElementById('ver-detalhes-btn');
+        if (btn) {
+            btn.remove();
+        }
+    }
+
+    getProgressTitle(operation) {
+        switch (operation) {
+            case 'bulk-edit':
+                return 'Diagnóstico da Edição em Massa';
+            case 'variant-titles':
+                return 'Diagnóstico dos Títulos das Opções';
+            case 'variant-values':
+                return 'Diagnóstico dos Valores e Preços';
+            case 'variant-titles-values':
+                return 'Diagnóstico dos Títulos e Valores das Opções';
+            default:
+                return 'Diagnóstico do Processamento';
+        }
     }
 }
 

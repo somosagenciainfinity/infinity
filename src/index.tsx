@@ -1474,6 +1474,62 @@ app.get('/', (c) => {
             </div>
         </div>
 
+
+        <!-- Progress Modal -->
+        <div id="progress-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">
+                        <i class="fas fa-cogs mr-2"></i>
+                        <span id="progress-title">Resultados da Atualização em Massa</span>
+                    </h3>
+                    <button id="close-progress-modal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                        <div id="progress-analyzed" class="text-2xl font-bold text-blue-600 mb-1">0</div>
+                        <div class="text-sm text-blue-600 font-medium">Produtos Analisados</div>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <div id="progress-updated" class="text-2xl font-bold text-green-600 mb-1">0</div>
+                        <div class="text-sm text-green-600 font-medium">Produtos Atualizados</div>
+                    </div>
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                        <div id="progress-failed" class="text-2xl font-bold text-red-600 mb-1">0</div>
+                        <div class="text-sm text-red-600 font-medium">Falhas</div>
+                    </div>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+                        <div id="progress-unchanged" class="text-2xl font-bold text-yellow-600 mb-1">0</div>
+                        <div class="text-sm text-yellow-600 font-medium">Sem Alteração</div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-gray-700">Progresso</span>
+                        <span id="progress-text" class="text-sm text-gray-500">0/0</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div id="progress-bar" class="bg-green-500 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <div class="text-sm font-medium text-gray-700 mb-2">Status Atual:</div>
+                    <div id="progress-status" class="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                        <i class="fas fa-clock mr-2"></i>Preparando processamento...
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button id="cancel-progress" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
+                        Cancelar
+                    </button>
+                    <button id="hide-progress" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        Ocultar (continua em background)
+                    </button>
+                </div>
+            </div>
+        </div>
         <script src="/static/app.js"></script>
     </body>
     </html>
