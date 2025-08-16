@@ -13,8 +13,8 @@
   - Múltiplas estratégias de busca de coleções com fallback
 
 ## URLs do Projeto
-- **Desenvolvimento**: https://3000-ie6av5523jenx8dn9c6ez-6532622b.e2b.dev
-- **GitHub**: (Configurar após setup GitHub)
+- **Desenvolvimento**: https://3000-izxu2hubm3vx84m3hnlpd-6532622b.e2b.dev
+- **GitHub**: https://github.com/somosagenciainfinity/infinity
 
 ## Funcionalidades Implementadas
 
@@ -168,7 +168,7 @@
 - **Plataforma**: Sandbox de Desenvolvimento (pronto para Cloudflare Pages)
 - **Status**: ✅ Ativo e Funcional
 - **Tech Stack**: Hono + TypeScript + TailwindCSS + FontAwesome
-- **URL de Desenvolvimento**: https://3000-ie6av5523jenx8dn9c6ez-6532622b.e2b.dev
+- **URL de Desenvolvimento**: https://3000-izxu2hubm3vx84m3hnlpd-6532622b.e2b.dev
 - **Última Atualização**: 15 de agosto de 2025
 
 ### Como Implantar em Produção

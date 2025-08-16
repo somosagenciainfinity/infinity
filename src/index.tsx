@@ -589,10 +589,15 @@ app.post('/api/analyze-variants', async (c) => {
 // Bulk update variant titles
 app.post('/api/bulk-update-variant-titles', async (c) => {
   try {
-    const { shop, accessToken, titleMappings } = await c.req.json()
+    const { shop, accessToken, titleMappings, scope, selectedProductIds } = await c.req.json()
     
     if (!shop || !accessToken || !titleMappings || titleMappings.length === 0) {
       return c.json({ error: 'Parâmetros obrigatórios: shop, accessToken, titleMappings' }, 400)
+    }
+    
+    // Validate scope parameters
+    if (scope === 'selected' && (!selectedProductIds || selectedProductIds.length === 0)) {
+      return c.json({ error: 'Para escopo "selected", selectedProductIds é obrigatório' }, 400)
     }
     
     // Rate limiting for bulk operations
@@ -600,14 +605,26 @@ app.post('/api/bulk-update-variant-titles', async (c) => {
       return c.json({ error: 'Rate limit exceeded for bulk variant operations' }, 429)
     }
     
-    // Get all products first
-    const allProducts = await getAllProducts(shop, accessToken, 250)
+    // Get products based on scope
+    let productsToProcess = []
+    if (scope === 'all') {
+      productsToProcess = await getAllProducts(shop, accessToken, 250)
+    } else {
+      // Get only selected products
+      const allProducts = await getAllProducts(shop, accessToken, 250)
+      productsToProcess = allProducts.filter(product => 
+        selectedProductIds.includes(product.id.toString()) || selectedProductIds.includes(product.id)
+      )
+    }
+    
     let updatedCount = 0
     let failedCount = 0
     const results: any[] = []
     
+    console.log(`🎯 Processando ${productsToProcess.length} produtos (escopo: ${scope})`)
+    
     // Process each product
-    for (const product of allProducts) {
+    for (const product of productsToProcess) {
       try {
         let hasChanges = false
         const updatedOptions = product.options?.map((option: any) => {
@@ -740,7 +757,7 @@ app.get('/', (c) => {
             <div id="main-interface" class="hidden">
                 <!-- Main Controls -->
                 <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <div class="flex flex-wrap items-center gap-2 mb-4">
+                    <div class="flex flex-wrap items-center justify-center gap-2 mb-4">
                         <button id="load-products-btn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
                             <i class="fas fa-sync-alt mr-2"></i>
                             Carregar Todos os Produtos
@@ -822,9 +839,20 @@ app.get('/', (c) => {
                             <i class="fas fa-edit mr-2"></i>
                             Edição em Massa
                         </h3>
-                        <button id="close-modal" class="text-gray-500 hover:text-gray-700">
-                            <i class="fas fa-times text-xl"></i>
-                        </button>
+                        <div class="flex items-center space-x-4">
+                            <!-- Botões duplicados no topo -->
+                            <button type="button" id="cancel-bulk-top" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm">
+                                <i class="fas fa-times mr-1"></i>
+                                Cancelar
+                            </button>
+                            <button type="button" id="apply-bulk-top" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
+                                <i class="fas fa-save mr-1"></i>
+                                Aplicar Alterações
+                            </button>
+                            <button id="close-modal" class="text-gray-500 hover:text-gray-700 ml-2">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
                     </div>
                     
                     <form id="bulk-edit-form" class="space-y-6">
@@ -1050,10 +1078,33 @@ app.get('/', (c) => {
                     </div>
                     
                     <div class="border-t pt-6 mt-6">
+                        <!-- Seletor de Escopo das Alterações -->
+                        <div class="mb-4">
+                            <h4 class="text-md font-semibold text-gray-800 mb-3">
+                                <i class="fas fa-target mr-2"></i>Escopo das Alterações
+                            </h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                    <input type="radio" name="variant-scope" value="all" id="scope-all" class="mr-3" checked>
+                                    <div>
+                                        <div class="font-medium text-gray-800">Todos os Produtos</div>
+                                        <div class="text-sm text-gray-600">Aplicar a todos os produtos da loja que possuem as opções especificadas</div>
+                                    </div>
+                                </label>
+                                <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                    <input type="radio" name="variant-scope" value="selected" id="scope-selected" class="mr-3">
+                                    <div>
+                                        <div class="font-medium text-gray-800">Produtos Selecionados</div>
+                                        <div class="text-sm text-gray-600" id="selected-count-display">Aplicar apenas aos produtos selecionados na tabela</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        
                         <div class="flex justify-between items-center">
-                            <div class="text-sm text-gray-600">
+                            <div class="text-sm text-gray-600" id="scope-info">
                                 <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                                As alterações serão aplicadas a todos os produtos que possuem as opções especificadas
+                                <span id="scope-info-text">As alterações serão aplicadas a todos os produtos que possuem as opções especificadas</span>
                             </div>
                             <div class="flex space-x-4">
                                 <button id="cancel-variant-titles" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors">
