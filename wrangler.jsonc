@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "webapp",
+  "name": "infinity-bulk-manager",
   "compatibility_date": "2025-08-15",
   "pages_build_output_dir": "./dist",
   "compatibility_flags": [
