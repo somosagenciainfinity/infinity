@@ -1809,44 +1809,45 @@ class InfinityBulkManager {
         }
     }
 
-    // REAL-TIME: Poll operation progress and update modal in real-time
+    // REAL-TIME: Poll operation progress using REAL Shopify API data
     async pollOperationProgress(operationId) {
-        console.log(`🔄 Starting real-time progress polling for operation: ${operationId}`);
+        console.log(`🔄 Starting REAL-TIME progress polling with Shopify API for operation: ${operationId}`);
         
         return new Promise((resolve) => {
             const pollInterval = setInterval(async () => {
                 try {
-                    const response = await fetch(`/api/operation-progress/${operationId}`);
+                    // Use the new endpoint that gets REAL data from Shopify API
+                    const response = await fetch(`/api/real-progress/${operationId}?shop=${encodeURIComponent(this.shopName)}&accessToken=${encodeURIComponent(this.accessToken)}`);
                     const data = await response.json();
                     
                     if (!response.ok) {
-                        console.error('❌ Progress polling error:', data.error);
-                        clearInterval(pollInterval);
-                        resolve();
+                        console.error('❌ Real progress polling error:', data.error);
+                        // Fallback to regular polling if real API fails
+                        console.log('🔄 Falling back to regular progress polling...');
+                        const fallbackResponse = await fetch(`/api/operation-progress/${operationId}`);
+                        const fallbackData = await fallbackResponse.json();
+                        
+                        if (fallbackResponse.ok && fallbackData.success) {
+                            this.updateProgressFromData(fallbackData.progress, operationId, 'fallback');
+                        } else {
+                            clearInterval(pollInterval);
+                            resolve();
+                        }
                         return;
                     }
                     
                     if (data.success && data.progress) {
                         const progress = data.progress;
-                        console.log(`📊 Progress update: ${progress.analyzed}/${progress.total} (${progress.percentage}%)`);
+                        const source = data.source || 'unknown';
                         
-                        // CRITICAL: Update the progressData object that feeds the modal
-                        this.progressData.analyzed = progress.analyzed || 0;
-                        this.progressData.updated = progress.updated || 0;
-                        this.progressData.failed = progress.failed || 0;
-                        this.progressData.unchanged = progress.unchanged || 0;
-                        this.progressData.total = progress.total || 0;
-                        this.progressData.status = progress.status || 'Processando...';
-                        this.progressData.details = progress.details || [];
+                        console.log(`📊 REAL Shopify API Progress update (${source}): ${progress.analyzed}/${progress.total} (${progress.percentage}%)`);
+                        console.log(`📈 Shopify API shows: ${progress.updated} products actually updated`);
                         
-                        // CRITICAL: Force update the progress display immediately
-                        if (this.isProgressVisible) {
-                            this.updateProgressDisplay();
-                        }
+                        this.updateProgressFromData(progress, operationId, source);
                         
                         // Check if operation is complete
-                        if (progress.status === 'completed' || progress.isComplete) {
-                            console.log(`✅ Operation ${operationId} completed successfully`);
+                        if (progress.status && progress.status.includes('completed') || progress.isComplete) {
+                            console.log(`✅ Operation ${operationId} completed with REAL Shopify data`);
                             clearInterval(pollInterval);
                             
                             // Clean up the operation from backend
@@ -1859,18 +1860,47 @@ class InfinityBulkManager {
                         }
                     }
                 } catch (error) {
-                    console.error('❌ Error polling progress:', error);
+                    console.error('❌ Error polling real progress:', error);
                     // Continue polling even on errors - temporary network issues shouldn't stop progress tracking
                 }
-            }, 1000); // Poll every 1 second for real-time updates
+            }, 2000); // Poll every 2 seconds for real API data (less frequent to avoid rate limits)
             
-            // Timeout after 5 minutes to prevent infinite polling
+            // Timeout after 8 minutes to prevent infinite polling
             setTimeout(() => {
                 clearInterval(pollInterval);
-                console.log(`⏰ Progress polling timeout for operation: ${operationId}`);
+                console.log(`⏰ Real progress polling timeout for operation: ${operationId}`);
                 resolve();
-            }, 300000); // 5 minutes timeout
+            }, 480000); // 8 minutes timeout
         });
+    }
+
+    // Helper method to update progress data from API response
+    updateProgressFromData(progress, operationId, source) {
+        // CRITICAL: Update the progressData object that feeds the modal
+        this.progressData.analyzed = progress.analyzed || 0;
+        this.progressData.updated = progress.updated || 0;
+        this.progressData.failed = progress.failed || 0;
+        this.progressData.unchanged = progress.unchanged || 0;
+        this.progressData.total = progress.total || 0;
+        this.progressData.status = progress.status || 'Processando...';
+        this.progressData.details = progress.details || [];
+        
+        // Add source indicator to status if from real API
+        if (source === 'shopify-api') {
+            this.progressData.status = `🔗 ${this.progressData.status} (Dados diretos da Shopify)`;
+        } else if (source === 'fallback') {
+            this.progressData.status = `⚠️ ${this.progressData.status} (Dados de fallback)`;
+        }
+        
+        // CRITICAL: Force update the progress display immediately
+        if (this.isProgressVisible) {
+            this.updateProgressDisplay();
+        }
+        
+        // Show recently updated products if available
+        if (progress.recentlyUpdatedProducts && progress.recentlyUpdatedProducts.length > 0) {
+            console.log(`📦 Recently updated products:`, progress.recentlyUpdatedProducts.map(p => `${p.title} (${p.updated_at})`));
+        }
     }
 }
 
