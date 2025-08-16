@@ -162,19 +162,49 @@
 - **SEO**: Título SEO, Descrição SEO
 - **🆕 Variantes**: Títulos de opções de variante (até 3 opções simultaneamente)
 
-## Implantação
+## 🚀 Implantação
 
 ### Status de Implantação
-- **Plataforma**: Sandbox de Desenvolvimento (pronto para Cloudflare Pages)
+- **Plataforma**: Cloudflare Pages (configurado e pronto)
 - **Status**: ✅ Ativo e Funcional
 - **Tech Stack**: Hono + TypeScript + TailwindCSS + FontAwesome
 - **URL de Desenvolvimento**: https://3000-izxu2hubm3vx84m3hnlpd-6532622b.e2b.dev
-- **Última Atualização**: 16 de agosto de 2025 - **PREÇOS EXTRAS FUNCIONANDO**
+- **Repositório**: https://github.com/somosagenciainfinity/infinity
+- **Última Atualização**: 16 de agosto de 2025 - **DEPLOY CORRIGIDO**
 
-### Como Implantar em Produção
-1. Configurar Cloudflare Pages
-2. Configurar variáveis de ambiente (se necessário)
-3. Build e deploy: `npm run build && wrangler pages deploy dist`
+### ✅ Deploy Cloudflare Pages - CONFIGURADO
+
+#### **Deploy Automático (Recomendado)**
+1. **Painel Cloudflare Pages**: [dash.cloudflare.com/pages](https://dash.cloudflare.com/pages)
+2. **Configurações de Build**:
+   ```yaml
+   Project name: infinity-bulk-manager
+   Build command: npm run build
+   Build output directory: dist
+   Root directory: /
+   ```
+3. **Conectar**: https://github.com/somosagenciainfinity/infinity
+4. **URL Final**: `https://infinity-bulk-manager.pages.dev`
+
+#### **Deploy Manual**
+```bash
+# Build e deploy
+npm run deploy:prod
+
+# Apenas build
+npm run build
+
+# Preview local
+npm run preview
+```
+
+#### **Correção Aplicada**
+- ❌ **Erro Original**: `npx wrangler deploy` (comando Workers)
+- ✅ **Solução**: `npm run deploy` (comando Pages correto)
+- ✅ **Config**: `wrangler.jsonc` atualizado com nome correto
+- ✅ **Scripts**: `package.json` com comandos Pages configurados
+
+📋 **Guia Completo**: Consulte `DEPLOY.md` para instruções detalhadas
 
 ## Tecnologias Utilizadas
 

@@ -1,5 +1,23 @@
 # Dependencies
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Production build
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs
+*.log
 
 # Runtime data
 pids
@@ -7,47 +25,21 @@ pids
 *.seed
 *.pid.lock
 
-# Build outputs
-dist/_worker.js
-dist/static/
-
-# Wrangler temporary files
+# Cloudflare
 .wrangler/
+wrangler.toml
 
-# dotenv environment variables file
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# PM2
-.pm2/
-pids/
-logs/
-*.log
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# IDE/Editor files
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# Backup files
-*.backup
-*.bak
-*.tar.gz
-*.zip
+# OS
+.DS_Store
+Thumbs.db
 
-# Test files
-test_*.html
+# Temporary files
+tmp/
+temp/
