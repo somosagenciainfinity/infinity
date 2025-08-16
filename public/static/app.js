@@ -46,8 +46,8 @@ class InfinityBulkManager {
         // Bulk modal controls
         document.getElementById('close-modal').addEventListener('click', () => this.closeBulkModal());
         document.getElementById('cancel-bulk').addEventListener('click', () => this.closeBulkModal());
-        document.getElementById('cancel-bulk-top').addEventListener('click', () => this.closeBulkModal()); // Novo botão topo
-        document.getElementById('apply-bulk-top').addEventListener('click', (e) => this.submitBulkEditFromButton(e)); // Novo botão topo
+        document.getElementById('cancel-bulk-top').addEventListener('click', () => this.closeBulkModal()); // Mesmo comportamento
+        // O botão apply-bulk-top agora é type="submit" então será capturado pelo form submit
         document.getElementById('bulk-edit-form').addEventListener('submit', (e) => this.submitBulkEdit(e));
         
         // Variant titles modal controls
@@ -607,16 +607,6 @@ class InfinityBulkManager {
 
     closeBulkModal() {
         this.closeModal('bulk-modal');
-    }
-
-    // Função para botão do topo (não é submit de form)
-    async submitBulkEditFromButton(e) {
-        e.preventDefault();
-        
-        // Simular evento de submit do form
-        const form = document.getElementById('bulk-edit-form');
-        const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
-        form.dispatchEvent(submitEvent);
     }
 
     async submitBulkEdit(e) {

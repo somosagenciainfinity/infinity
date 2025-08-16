@@ -915,7 +915,7 @@ var process_default = _process;
 // node_modules/wrangler/_virtual_unenv_global_polyfill-@cloudflare-unenv-preset-node-process
 globalThis.process = process_default;
 
-// .wrangler/tmp/pages-eYaeOu/bundledWorker-0.550230235352061.mjs
+// .wrangler/tmp/pages-IdDunH/bundledWorker-0.7482708245385121.mjs
 import { Writable as Writable2 } from "node:stream";
 import { EventEmitter as EventEmitter2 } from "node:events";
 var __defProp2 = Object.defineProperty;
@@ -3289,13 +3289,12 @@ $.get("/", (e) => e.html(`
                             Edi\xE7\xE3o em Massa
                         </h3>
                         <div class="flex items-center space-x-4">
-                            <!-- Bot\xF5es duplicados no topo -->
-                            <button type="button" id="cancel-bulk-top" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm">
-                                <i class="fas fa-times mr-1"></i>
+                            <!-- Bot\xF5es duplicados do rodap\xE9 (c\xF3pia exata) -->
+                            <button type="button" id="cancel-bulk-top" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors">
                                 Cancelar
                             </button>
-                            <button type="button" id="apply-bulk-top" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
-                                <i class="fas fa-save mr-1"></i>
+                            <button type="submit" id="apply-bulk-top" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
+                                <i class="fas fa-save mr-2"></i>
                                 Aplicar Altera\xE7\xF5es
                             </button>
                             <button id="close-modal" class="text-gray-500 hover:text-gray-700 ml-2">
@@ -3797,7 +3796,7 @@ function transformRoutingRuleToRegExp(rule) {
 }
 __name(transformRoutingRuleToRegExp, "transformRoutingRuleToRegExp");
 
-// .wrangler/tmp/pages-eYaeOu/ggwbysz9htt.js
+// .wrangler/tmp/pages-IdDunH/lb3ndmqp4kd.js
 var define_ROUTES_default = { version: 1, include: ["/*"], exclude: ["/static/*"] };
 var routes = define_ROUTES_default;
 var pages_dev_pipeline_default = {
@@ -3862,7 +3861,7 @@ var jsonError2 = /* @__PURE__ */ __name(async (request, env3, _ctx, middlewareCt
 }, "jsonError");
 var middleware_miniflare3_json_error_default2 = jsonError2;
 
-// .wrangler/tmp/bundle-ciV6M4/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-LcGxnD/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__2 = [
   middleware_ensure_req_body_drained_default2,
   middleware_miniflare3_json_error_default2
@@ -3894,7 +3893,7 @@ function __facade_invoke__2(request, env3, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__2, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-ciV6M4/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-LcGxnD/middleware-loader.entry.ts
 var __Facade_ScheduledController__2 = class ___Facade_ScheduledController__2 {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
@@ -3994,4 +3993,4 @@ export {
   __INTERNAL_WRANGLER_MIDDLEWARE__2 as __INTERNAL_WRANGLER_MIDDLEWARE__,
   middleware_loader_entry_default2 as default
 };
-//# sourceMappingURL=ggwbysz9htt.js.map
+//# sourceMappingURL=lb3ndmqp4kd.js.map

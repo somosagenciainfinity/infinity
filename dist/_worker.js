@@ -148,13 +148,12 @@ var At=Object.defineProperty;var Ue=e=>{throw TypeError(e)};var Ot=(e,t,r)=>t in
                             Edição em Massa
                         </h3>
                         <div class="flex items-center space-x-4">
-                            <!-- Botões duplicados no topo -->
-                            <button type="button" id="cancel-bulk-top" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm">
-                                <i class="fas fa-times mr-1"></i>
+                            <!-- Botões duplicados do rodapé (cópia exata) -->
+                            <button type="button" id="cancel-bulk-top" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors">
                                 Cancelar
                             </button>
-                            <button type="button" id="apply-bulk-top" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm">
-                                <i class="fas fa-save mr-1"></i>
+                            <button type="submit" id="apply-bulk-top" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
+                                <i class="fas fa-save mr-2"></i>
                                 Aplicar Alterações
                             </button>
                             <button id="close-modal" class="text-gray-500 hover:text-gray-700 ml-2">
