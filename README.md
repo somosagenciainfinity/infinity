@@ -55,11 +55,11 @@
    - Processamento sequencial com respeito aos rate limits
    - Resultados detalhados com estatísticas de sucesso/falha
 
-6. **🆕 Sistema Avançado de Gerenciamento de Variantes**
+6. **✅ Sistema Avançado de Gerenciamento de Variantes**
    - **Análise Inteligente**: Carregamento automático de todas as variantes existentes na loja
    - **Renomeação de Títulos**: Alterar nomes das opções (ex: "Size" → "Tamanho", "Color" → "Cor")
-   - **Edição de Valores**: Interface para alterar valores das variantes (em desenvolvimento)
-   - **Preços Extras**: Sistema para adicionar preços adicionais por variante (em desenvolvimento)
+   - **✅ Edição de Valores**: Interface para alterar valores das variantes 
+   - **✅ Preços Extras**: Sistema para adicionar preços adicionais por variante **FUNCIONANDO**
    - **Interface com Abas**: Organização clara entre títulos e valores das variantes
    - **Análise Completa**: Visualização de quantos produtos usam cada opção e seus valores
    - **Processamento Inteligente**: Afeta apenas produtos relevantes com as opções especificadas
@@ -169,7 +169,7 @@
 - **Status**: ✅ Ativo e Funcional
 - **Tech Stack**: Hono + TypeScript + TailwindCSS + FontAwesome
 - **URL de Desenvolvimento**: https://3000-izxu2hubm3vx84m3hnlpd-6532622b.e2b.dev
-- **Última Atualização**: 15 de agosto de 2025
+- **Última Atualização**: 16 de agosto de 2025 - **PREÇOS EXTRAS FUNCIONANDO**
 
 ### Como Implantar em Produção
 1. Configurar Cloudflare Pages
@@ -205,7 +205,7 @@
 2. **Templates de Edição**: Salvar e reutilizar configurações de edição em massa
 3. **Histórico de Operações**: Log de todas as operações realizadas
 4. **Agendamento**: Agendar operações em massa para horários específicos
-5. **🆕 Edição de Valores de Variantes**: Expandir para permitir edição dos valores das opções (não apenas títulos)
+5. **✅ Edição de Valores de Variantes**: CONCLUÍDO - Sistema completo de edição de valores com preços extras
 6. **🆕 Preview de Mudanças**: Mostrar prévia das alterações antes de aplicar
 
 ### Segurança e Monitoramento
@@ -216,7 +216,7 @@
 
 ## 🎯 Funcionalidades Principais Destacadas
 
-### ✨ Nova Funcionalidade: Edição em Massa de Títulos de Variantes
+### ✨ Funcionalidade: Edição em Massa de Títulos de Variantes
 Esta é uma funcionalidade única que permite renomear os títulos das opções de variante em todos os produtos de uma só vez. Por exemplo:
 - Transformar "Size" em "Tamanho" em todos os produtos
 - Mudar "Color" para "Cor" em toda a loja
@@ -235,6 +235,36 @@ Esta é uma funcionalidade única que permite renomear os títulos das opções 
 - ✅ Processamento inteligente que afeta apenas produtos relevantes
 - ✅ Relatórios detalhados com estatísticas de sucesso
 - ✅ Rate limiting para proteção da API Shopify
+
+### 🚀 **NOVA**: Sistema de Preços Extras para Variantes
+**Status: ✅ FUNCIONALIDADE COMPLETA E TESTADA**
+
+Esta funcionalidade revolucionária permite adicionar preços extras específicos para valores de variantes. Ideal para personalização, upgrades e opções premium.
+
+**Exemplo de Uso:**
+- Produto base: Camisa R$ 500,00
+- Variante PERSONALIZAR = "SIM": +R$ 50,00
+- **Preço final**: R$ 550,00 quando "SIM" for selecionado
+
+**Como usar:**
+1. Acesse "Títulos de Variantes" → "Carregar Variantes Existentes"
+2. Vá para aba **"Valores e Preços"**
+3. Configure preços extras para valores específicos
+4. Aplique alterações
+5. ✅ **Resultado**: Preços atualizados automaticamente na loja
+
+**Cenários de Uso:**
+- **Personalização**: PERSONALIZAR = "SIM" (+R$ 50,00)
+- **Tamanhos Premium**: TAMANHO = "GG" (+R$ 20,00)
+- **Materiais Especiais**: MATERIAL = "Premium" (+R$ 100,00)
+- **Opções Extras**: BORDADO = "Sim" (+R$ 30,00)
+
+**Benefícios:**
+- ✅ **Automático**: Preços calculados dinamicamente (base + extras)
+- ✅ **Flexível**: Diferentes preços para diferentes valores
+- ✅ **Inteligente**: Soma múltiplos preços extras se necessário
+- ✅ **Confiável**: Logs detalhados de todas as alterações
+- ✅ **Testado**: Validação completa da funcionalidade
 
 ---
 
