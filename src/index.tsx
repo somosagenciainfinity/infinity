@@ -384,7 +384,115 @@ app.post('/api/test-connection', async (c) => {
   }
 })
 
-// Get products - ALWAYS loads ALL products using working pagination logic
+// Favicon route to avoid 500 errors
+app.get('/favicon.ico', (c) => {
+  return c.text('', 204) // No content
+})
+
+// Test route for variant values fix
+app.get('/test-variant-fix', (c) => {
+  return c.html(`<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste - Variant Values Fix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-8">
+    <h1 class="text-2xl font-bold mb-4">🧪 Teste da Correção de Valores de Variantes</h1>
+    
+    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+        <h2 class="text-lg font-bold text-green-800 mb-2">✅ Correção Aplicada</h2>
+        <p class="text-green-700">Quando o usuário tenta alterar apenas valores de variantes:</p>
+        <ul class="list-disc ml-6 mt-2 text-green-700">
+            <li><strong>ANTES:</strong> Modal fechava + mensagem vermelha de erro + voltava para página principal</li>
+            <li><strong>AGORA:</strong> Modal permanece aberto + mensagem azul informativa dentro do modal + usuário pode tentar novamente</li>
+        </ul>
+    </div>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+        <h2 class="text-lg font-bold text-blue-800 mb-2">🔧 Mudanças Técnicas</h2>
+        <ul class="list-disc ml-6 text-blue-700">
+            <li>Função <code>applyVariantChanges()</code> não fecha mais o modal quando apenas valores são alterados</li>
+            <li>Nova função <code>showVariantMessage()</code> exibe mensagens dentro do próprio modal</li>
+            <li>Mensagem informativa em azul em vez de erro vermelho</li>
+            <li>Usuário pode fechar a mensagem ou tentar outras alterações</li>
+        </ul>
+    </div>
+
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+        <h2 class="text-lg font-bold text-yellow-800 mb-2">🧪 Simulação da Correção</h2>
+        <p class="text-yellow-700 mb-3">Clique no botão abaixo para simular o comportamento corrigido:</p>
+        <button onclick="testVariantMessage()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            Simular Alteração de Valores
+        </button>
+        <div id="test-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Variantes e Opções (Simulação)</h3>
+                    <button onclick="closeTestModal()" class="text-gray-500 hover:text-gray-700">✕</button>
+                </div>
+                <div class="mb-4 p-4 bg-gray-50 rounded">
+                    <p>Simulando: Usuário alterou valores de variantes e clicou em "Aplicar Alterações"</p>
+                </div>
+                <div id="test-message-area"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <h2 class="text-lg font-bold text-gray-800 mb-2">🚀 Como Testar no App Real</h2>
+        <ol class="list-decimal ml-6 text-gray-700">
+            <li>Conecte-se com suas credenciais Shopify</li>
+            <li>Carregue produtos</li>
+            <li>Clique em "Variantes e Opções"</li>
+            <li>Carregue variantes existentes</li>
+            <li>Vá para a aba "Valores e Preços"</li>
+            <li>Marque algumas alterações de valores</li>
+            <li>Clique em "Aplicar Alterações"</li>
+            <li><strong>Resultado:</strong> Mensagem azul informativa, modal permanece aberto</li>
+        </ol>
+    </div>
+
+    <div class="mt-6 flex gap-4">
+        <a href="/" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            🔗 Voltar ao Infinity Bulk Manager
+        </a>
+    </div>
+
+    <script>
+        function testVariantMessage() {
+            document.getElementById('test-modal').classList.remove('hidden');
+            document.getElementById('test-modal').classList.add('flex');
+            
+            // Simular a mensagem que apareceria
+            setTimeout(() => {
+                const messageArea = document.getElementById('test-message-area');
+                messageArea.innerHTML = \`
+                    <div class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-700">
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle mt-0.5 mr-3"></i>
+                            <div class="flex-1">ℹ️ A edição de valores de variantes será implementada em breve. Por enquanto, você pode alterar apenas os títulos das opções (ex: "SIZE" → "Tamanho").</div>
+                            <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-gray-400 hover:text-gray-600">
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                \`;
+            }, 500);
+        }
+        
+        function closeTestModal() {
+            document.getElementById('test-modal').classList.add('hidden');
+            document.getElementById('test-modal').classList.remove('flex');
+            document.getElementById('test-message-area').innerHTML = '';
+        }
+    </script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+</body>
+</html>`)
+})
+
+// Get all products - ALWAYS loads ALL products using working pagination logic
 app.post('/api/products', async (c) => {
   try {
     const { shop, accessToken } = await c.req.json()
@@ -691,7 +799,7 @@ app.post('/api/bulk-update-variant-titles', async (c) => {
     
     return c.json({ 
       success: true,
-      totalProducts: allProducts.length,
+      totalProducts: productsToProcess.length,
       updatedCount,
       failedCount,
       results: results.slice(0, 50) // Limit results for performance
@@ -854,19 +962,9 @@ app.get('/', (c) => {
                             <i class="fas fa-edit mr-2"></i>
                             Edição em Massa
                         </h3>
-                        <div class="flex items-center space-x-4">
-                            <!-- Botões duplicados do rodapé (cópia exata) -->
-                            <button type="button" id="cancel-bulk-top" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors">
-                                Cancelar
-                            </button>
-                            <button type="submit" id="apply-bulk-top" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
-                                <i class="fas fa-save mr-2"></i>
-                                Aplicar Alterações
-                            </button>
-                            <button id="close-modal" class="text-gray-500 hover:text-gray-700 ml-2">
-                                <i class="fas fa-times text-xl"></i>
-                            </button>
-                        </div>
+                        <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
                     </div>
                     
                     <form id="bulk-edit-form" class="space-y-6">
@@ -1108,43 +1206,14 @@ app.get('/', (c) => {
                     </div>
                     
                     <div class="border-t pt-6 mt-6">
-                        <!-- Seletor de Escopo das Alterações -->
-                        <div class="mb-4">
-                            <h4 class="text-md font-semibold text-gray-800 mb-3">
-                                <i class="fas fa-target mr-2"></i>Escopo das Alterações
-                            </h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                    <input type="radio" name="variant-scope" value="all" id="scope-all" class="mr-3" checked>
-                                    <div>
-                                        <div class="font-medium text-gray-800">Todos os Produtos</div>
-                                        <div class="text-sm text-gray-600">Aplicar a todos os produtos da loja que possuem as opções especificadas</div>
-                                    </div>
-                                </label>
-                                <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                    <input type="radio" name="variant-scope" value="selected" id="scope-selected" class="mr-3">
-                                    <div>
-                                        <div class="font-medium text-gray-800">Produtos Selecionados</div>
-                                        <div class="text-sm text-gray-600" id="selected-count-display">Aplicar apenas aos produtos selecionados na tabela</div>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="flex justify-between items-center">
-                            <div class="text-sm text-gray-600" id="scope-info">
-                                <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                                <span id="scope-info-text">As alterações serão aplicadas a todos os produtos que possuem as opções especificadas</span>
-                            </div>
-                            <div class="flex space-x-4">
-                                <button id="cancel-variant-titles" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors">
-                                    Cancelar
-                                </button>
-                                <button id="apply-variant-changes" class="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors hidden">
-                                    <i class="fas fa-magic mr-2"></i>
-                                    Aplicar Alterações
-                                </button>
-                            </div>
+                        <div class="flex justify-end space-x-4">
+                            <button id="cancel-variant-titles" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors">
+                                Cancelar
+                            </button>
+                            <button id="apply-variant-changes" class="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors hidden">
+                                <i class="fas fa-magic mr-2"></i>
+                                Aplicar Alterações
+                            </button>
                         </div>
                     </div>
                 </div>

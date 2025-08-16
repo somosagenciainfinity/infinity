@@ -46,13 +46,6 @@ class InfinityBulkManager {
         // Bulk modal controls
         document.getElementById('close-modal').addEventListener('click', () => this.closeBulkModal());
         document.getElementById('cancel-bulk').addEventListener('click', () => this.closeBulkModal());
-        document.getElementById('cancel-bulk-top').addEventListener('click', () => this.closeBulkModal()); // Mesmo comportamento
-        // Botão do topo precisa de event listener específico pois está fora do form
-        document.getElementById('apply-bulk-top').addEventListener('click', (e) => {
-            e.preventDefault();
-            // Simular submit do form
-            document.getElementById('bulk-edit-form').requestSubmit();
-        });
         document.getElementById('bulk-edit-form').addEventListener('submit', (e) => this.submitBulkEdit(e));
         
         // Variant titles modal controls
@@ -64,10 +57,6 @@ class InfinityBulkManager {
         // Tab controls
         document.getElementById('tab-titles').addEventListener('click', () => this.switchTab('titles'));
         document.getElementById('tab-values').addEventListener('click', () => this.switchTab('values'));
-        
-        // Variant scope controls (apply scope)
-        document.getElementById('scope-all').addEventListener('change', () => this.updateVariantScopeInfo());
-        document.getElementById('scope-selected').addEventListener('change', () => this.updateVariantScopeInfo());
         
         // Load scope controls
         document.getElementById('load-scope-all').addEventListener('change', () => this.updateLoadScopeInfo());
@@ -780,8 +769,7 @@ class InfinityBulkManager {
         // Reset state
         this.resetVariantModal();
         
-        // Update scope information
-        this.updateVariantScopeInfo();
+        // Update load scope information
         this.updateLoadScopeInfo();
     }
 
@@ -822,19 +810,7 @@ class InfinityBulkManager {
         }
     }
 
-    updateVariantScopeInfo() {
-        const scopeAll = document.getElementById('scope-all');
-        const scopeInfoText = document.getElementById('scope-info-text');
-        const selectedCountDisplay = document.getElementById('selected-count-display');
-        
-        if (scopeAll.checked) {
-            scopeInfoText.textContent = 'As alterações serão aplicadas a todos os produtos que possuem as opções especificadas';
-        } else {
-            const selectedCount = this.selectedProducts.size;
-            scopeInfoText.textContent = `As alterações serão aplicadas apenas aos ${selectedCount} produtos selecionados que possuem as opções especificadas`;
-            selectedCountDisplay.textContent = `Aplicar apenas aos ${selectedCount} produtos selecionados na tabela`;
-        }
-    }
+
 
     updateLoadScopeInfo() {
         const selectedCount = this.selectedProducts.size;
@@ -1069,9 +1045,9 @@ class InfinityBulkManager {
         applyBtn.disabled = true;
         
         try {
-            // Get selected scope
-            const scopeAll = document.getElementById('scope-all').checked;
-            const selectedProductIds = scopeAll ? null : Array.from(this.selectedProducts);
+            // Use the same scope that was used for loading variants
+            const loadScopeAll = document.getElementById('load-scope-all').checked;
+            const selectedProductIds = loadScopeAll ? null : Array.from(this.selectedProducts);
             
             // Apply title changes first if any
             let titleResults = null;
@@ -1085,7 +1061,7 @@ class InfinityBulkManager {
                         shop: this.shopName,
                         accessToken: this.accessToken,
                         titleMappings: titleMappings,
-                        scope: scopeAll ? 'all' : 'selected',
+                        scope: loadScopeAll ? 'all' : 'selected',
                         selectedProductIds: selectedProductIds
                     })
                 });
@@ -1098,21 +1074,26 @@ class InfinityBulkManager {
             
             // TODO: Apply value changes (this would need a new API endpoint)
             let valueResults = null;
-            if (valueChanges.length > 0) {
-                // For now, just show that value changes are not yet implemented
-                this.showError('Edição de valores de variantes será implementada em breve. Títulos foram atualizados com sucesso.');
-            }
             
-            this.closeVariantTitlesModal();
-            
-            if (titleResults) {
+            // Handle different scenarios
+            if (titleResults && valueChanges.length > 0) {
+                // Both titles and values were changed - titles succeeded, values not implemented
+                this.closeVariantTitlesModal();
                 this.showVariantTitlesResults(titleResults);
+                this.showSuccess('✅ Títulos de variantes atualizados com sucesso! Edição de valores será implementada em breve.');
+            } else if (titleResults) {
+                // Only titles were changed and succeeded
+                this.closeVariantTitlesModal();
+                this.showVariantTitlesResults(titleResults);
+            } else if (valueChanges.length > 0) {
+                // Only value changes were requested (not yet implemented)
+                // DON'T close modal, show info message within the modal
+                this.showVariantMessage('ℹ️ A edição de valores de variantes será implementada em breve. Por enquanto, você pode alterar apenas os títulos das opções (ex: "SIZE" → "Tamanho").', 'info');
+                return; // Don't close modal, let user try again or close manually
             }
             
-            // Reload products to show updated data
-            setTimeout(() => {
-                this.loadProducts();
-            }, 2000);
+            // Note: Manual reload removed to prevent automatic reloading
+            // User can manually reload products using the "Carregar Todos os Produtos" button if needed
             
         } catch (error) {
             this.showError('Erro nas alterações de variantes: ' + error.message);
@@ -1199,6 +1180,64 @@ class InfinityBulkManager {
         
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+    }
+
+    showVariantMessage(message, type = 'info') {
+        // Create or update message div within the variant modal
+        let messageDiv = document.getElementById('variant-modal-message');
+        if (!messageDiv) {
+            messageDiv = document.createElement('div');
+            messageDiv.id = 'variant-modal-message';
+            
+            // Insert after the modal header
+            const modalContent = document.querySelector('#variant-titles-modal .bg-white');
+            const header = modalContent.querySelector('.flex.justify-between.items-center');
+            header.parentNode.insertBefore(messageDiv, header.nextSibling);
+        }
+        
+        // Style based on type
+        let bgColor, borderColor, textColor, icon;
+        switch (type) {
+            case 'error':
+                bgColor = 'bg-red-50';
+                borderColor = 'border-red-200';
+                textColor = 'text-red-700';
+                icon = 'fas fa-exclamation-circle';
+                break;
+            case 'success':
+                bgColor = 'bg-green-50';
+                borderColor = 'border-green-200';
+                textColor = 'text-green-700';
+                icon = 'fas fa-check-circle';
+                break;
+            case 'info':
+            default:
+                bgColor = 'bg-blue-50';
+                borderColor = 'border-blue-200';
+                textColor = 'text-blue-700';
+                icon = 'fas fa-info-circle';
+                break;
+        }
+        
+        messageDiv.className = `mt-4 p-4 ${bgColor} border ${borderColor} rounded-lg ${textColor}`;
+        messageDiv.innerHTML = `
+            <div class="flex items-start">
+                <i class="${icon} mt-0.5 mr-3"></i>
+                <div class="flex-1">${message}</div>
+                <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        
+        // Auto-remove after 8 seconds for info messages
+        if (type === 'info') {
+            setTimeout(() => {
+                if (messageDiv && messageDiv.parentNode) {
+                    messageDiv.remove();
+                }
+            }, 8000);
+        }
     }
 
     showError(message) {
