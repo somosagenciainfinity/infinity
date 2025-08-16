@@ -310,15 +310,27 @@ class InfinityBulkManager {
             return;
         }
         
-        // Show loading state
+        // SPEED: Enhanced loading state with performance focus
         const originalText = loadBtn.innerHTML;
-        loadBtn.innerHTML = '<i class="fas fa-spinner loading-spinner mr-2"></i>Carregando TODOS os produtos...';
+        loadBtn.innerHTML = '<i class="fas fa-rocket loading-spinner mr-2"></i>Carregamento Ultra-Rápido...';
         loadBtn.disabled = true;
         loading.classList.remove('hidden');
         
+        // SPEED: Add real-time progress indicator
+        const loadingMessage = loading.querySelector('p');
+        if (loadingMessage) {
+            loadingMessage.textContent = '⚡ Iniciando carregamento otimizado de produtos...';
+        }
+        
         try {
-            console.log('🚀 Iniciando carregamento de TODOS os produtos...');
+            console.log('⚡ Iniciando carregamento ULTRA-RÁPIDO de produtos...');
             
+            // SPEED: Update progress message
+            if (loadingMessage) {
+                loadingMessage.textContent = '⚡ Buscando produtos com cache otimizado...';
+            }
+            
+            const startTime = Date.now();
             const response = await fetch('/api/products', {
                 method: 'POST',
                 headers: {
@@ -333,11 +345,17 @@ class InfinityBulkManager {
             const data = await response.json();
             
             if (response.ok) {
-                console.log('✅ API Response completa:', data);
-                console.log('✅ TOTAL de produtos recebidos:', data.products?.length || 0);
+                const loadTime = Date.now() - startTime;
+                console.log('⚡ API Response ultra-rápida:', data);
+                console.log('⚡ TOTAL de produtos recebidos em', loadTime, 'ms:', data.products?.length || 0);
+                
+                // SPEED: Update progress
+                if (loadingMessage) {
+                    loadingMessage.textContent = `⚡ Renderizando ${data.products?.length || 0} produtos...`;
+                }
                 
                 if (data.products && data.products.length > 0) {
-                    console.log('✅ Primeiro produto (amostra):', {
+                    console.log('⚡ Primeiro produto (amostra):', {
                         id: data.products[0].id,
                         title: data.products[0].title,
                         price: data.products[0].variants?.[0]?.price,
@@ -350,6 +368,11 @@ class InfinityBulkManager {
                 this.filteredProducts = [...this.allProducts]; // Cópia inicial
                 this.products = this.filteredProducts; // Para compatibilidade
                 
+                // SPEED: Show rendering progress
+                if (loadingMessage) {
+                    loadingMessage.textContent = '⚡ Finalizando renderização da interface...';
+                }
+                
                 // Renderizar e atualizar contadores
                 this.renderProducts();
                 this.updateProductsCount();
@@ -358,7 +381,9 @@ class InfinityBulkManager {
                 // Mostrar seção do filtro de coleções
                 document.getElementById('collections-filter-section').classList.remove('hidden');
                 
-                this.showSuccess(`🎉 SUCESSO! Carregados ${this.products.length} produtos com preços corretos!`);
+                // SPEED: Enhanced success message with performance metrics
+                const performanceInfo = loadTime < 1000 ? 'ULTRA-RÁPIDO' : loadTime < 3000 ? 'RÁPIDO' : 'CONCLUÍDO';
+                this.showSuccess(`⚡ ${performanceInfo}! ${this.products.length} produtos carregados em ${loadTime}ms!`);
             } else {
                 throw new Error(data.error || 'Erro ao carregar produtos');
             }
@@ -875,11 +900,23 @@ class InfinityBulkManager {
         }
         
         const originalText = loadBtn.innerHTML;
-        loadBtn.innerHTML = '<i class="fas fa-spinner loading-spinner mr-2"></i>Carregando...';
+        // SPEED: Enhanced loading feedback
+        loadBtn.innerHTML = '<i class="fas fa-rocket loading-spinner mr-2"></i>Carregamento Ultra-Rápido...';
         loadBtn.disabled = true;
         loading.classList.remove('hidden');
         
+        // SPEED: Add progress indicator
+        const progressElement = document.createElement('div');
+        progressElement.id = 'variant-load-progress';
+        progressElement.className = 'mt-2 text-sm text-blue-600 font-medium';
+        progressElement.textContent = '⚡ Iniciando carregamento otimizado...';
+        loading.appendChild(progressElement);
+        
         try {
+            // SPEED: Show optimized progress messages
+            progressElement.textContent = '⚡ Verificando escopo de produtos...';
+            await new Promise(resolve => setTimeout(resolve, 100)); // Brief delay for UX
+            
             // Verificar qual escopo foi selecionado
             const loadScopeAll = document.getElementById('load-scope-all').checked;
             const selectedProductIds = loadScopeAll ? null : Array.from(this.selectedProducts);
@@ -890,6 +927,11 @@ class InfinityBulkManager {
                 return;
             }
             
+            // SPEED: Update progress
+            const productCount = loadScopeAll ? 'todos os' : selectedProductIds.length;
+            progressElement.textContent = `⚡ Analisando variantes de ${productCount} produtos...`;
+            
+            const startTime = Date.now();
             const response = await fetch('/api/analyze-variants', {
                 method: 'POST',
                 headers: {
@@ -911,6 +953,11 @@ class InfinityBulkManager {
             }
             
             if (response.ok) {
+                const loadTime = Date.now() - startTime;
+                
+                // SPEED: Show performance metrics
+                progressElement.textContent = `⚡ Análise concluída em ${loadTime}ms - Renderizando interface...`;
+                
                 this.variantData = data;
                 
                 // Verificar se os dados existem antes de renderizar
@@ -925,7 +972,10 @@ class InfinityBulkManager {
                 document.getElementById('variant-data-container').classList.remove('hidden');
                 document.getElementById('apply-variant-changes').classList.remove('hidden');
                 
-                this.showSuccess(`Analisados ${data.totalProducts} produtos com variantes encontradas`);
+                // SPEED: Enhanced success message with performance info
+                const optionCount = Object.keys(data.optionStats).length;
+                const performanceInfo = data.performanceMs ? ` (${data.performanceMs}ms)` : '';
+                this.showSuccess(`⚡ ULTRA-RÁPIDO: ${data.totalProducts} produtos, ${optionCount} opções analisadas${performanceInfo}`);
             } else {
                 throw new Error(data.error || 'Erro ao analisar variantes');
             }
@@ -935,6 +985,12 @@ class InfinityBulkManager {
             loadBtn.innerHTML = originalText;
             loadBtn.disabled = false;
             loading.classList.add('hidden');
+            
+            // SPEED: Clean up progress element
+            const progressEl = document.getElementById('variant-load-progress');
+            if (progressEl) {
+                progressEl.remove();
+            }
         }
     }
 
@@ -1127,6 +1183,7 @@ class InfinityBulkManager {
             if (titleMappings.length > 0) {
                 this.progressData.status = 'Processando títulos das variantes...';
                 
+                // REAL-TIME: Start the bulk update operation
                 const titleResponse = await fetch('/api/bulk-update-variant-titles', {
                     method: 'POST',
                     headers: {
@@ -1146,11 +1203,17 @@ class InfinityBulkManager {
                     throw new Error(titleResults.error || 'Erro na atualização de títulos');
                 }
                 
-                // Update progress with title results
-                if (titleResults) {
-                    this.progressData.updated += titleResults.updatedCount || 0;
-                    this.progressData.failed += titleResults.failedCount || 0;
-                    this.progressData.analyzed = titleResults.totalProducts || 0;
+                // REAL-TIME: If operation returns an operationId, start polling for progress
+                if (titleResults.operationId) {
+                    console.log(`🔄 Starting real-time progress tracking for operation: ${titleResults.operationId}`);
+                    await this.pollOperationProgress(titleResults.operationId);
+                } else {
+                    // Fallback: Use static results if no operationId (backward compatibility)
+                    if (titleResults) {
+                        this.progressData.updated += titleResults.updatedCount || 0;
+                        this.progressData.failed += titleResults.failedCount || 0;
+                        this.progressData.analyzed = titleResults.totalProducts || 0;
+                    }
                 }
             }
             
@@ -1178,17 +1241,23 @@ class InfinityBulkManager {
                     throw new Error(valueResults.error || 'Erro na atualização de valores');
                 }
                 
-                // Update progress with value results
-                if (valueResults) {
-                    // If we didn't process titles, use value results directly
-                    if (!titleResults) {
-                        this.progressData.updated = valueResults.updatedCount || 0;
-                        this.progressData.failed = valueResults.failedCount || 0;
-                        this.progressData.analyzed = valueResults.totalProducts || 0;
-                    } else {
-                        // Combine results (take max values as they might overlap)
-                        this.progressData.updated = Math.max(this.progressData.updated, valueResults.updatedCount || 0);
-                        this.progressData.failed = Math.max(this.progressData.failed, valueResults.failedCount || 0);
+                // REAL-TIME: If operation returns an operationId, start polling for progress
+                if (valueResults.operationId) {
+                    console.log(`🔄 Starting real-time progress tracking for values operation: ${valueResults.operationId}`);
+                    await this.pollOperationProgress(valueResults.operationId);
+                } else {
+                    // Fallback: Use static results if no operationId (backward compatibility)
+                    if (valueResults) {
+                        // If we didn't process titles, use value results directly
+                        if (!titleResults) {
+                            this.progressData.updated = valueResults.updatedCount || 0;
+                            this.progressData.failed = valueResults.failedCount || 0;
+                            this.progressData.analyzed = valueResults.totalProducts || 0;
+                        } else {
+                            // Combine results (take max values as they might overlap)
+                            this.progressData.updated = Math.max(this.progressData.updated, valueResults.updatedCount || 0);
+                            this.progressData.failed = Math.max(this.progressData.failed, valueResults.failedCount || 0);
+                        }
                     }
                 }
             }
@@ -1503,26 +1572,34 @@ class InfinityBulkManager {
         this.currentOperation = operation;
         this.isProgressVisible = true;
         
-        // Reset progress data
-        this.progressData = {
-            analyzed: 0,
-            updated: 0,
-            failed: 0,
-            unchanged: 0,
-            total: 0,
-            status: 'Preparando processamento...'
-        };
+        // CORREÇÃO: Não resetar progress data se já existe dados válidos
+        if (!this.progressData || this.progressData.total === 0) {
+            this.progressData = {
+                analyzed: 0,
+                updated: 0,
+                failed: 0,
+                unchanged: 0,
+                total: 0,
+                status: 'Preparando processamento...'
+            };
+        }
         
         // Update modal
         document.getElementById('progress-title').textContent = title;
-        this.updateProgressDisplay();
+        
+        // CORREÇÃO: Remove event listeners antigos antes de adicionar novos
+        this.removeProgressModalEventListeners();
         
         // Show modal
         const modal = document.getElementById('progress-modal');
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         
-        // Start progress monitoring
+        // CORREÇÃO: Adiciona event listeners frescos
+        this.addProgressModalEventListeners();
+        
+        // Update display and start monitoring
+        this.updateProgressDisplay();
         this.startProgressMonitoring();
     }
 
@@ -1539,6 +1616,39 @@ class InfinityBulkManager {
     closeProgressModal() {
         this.hideProgressModal();
         this.stopProgressMonitoring();
+        // CORREÇÃO: Remove event listeners ao fechar
+        this.removeProgressModalEventListeners();
+    }
+
+    addProgressModalEventListeners() {
+        const closeBtn = document.getElementById('close-progress-modal');
+        const cancelBtn = document.getElementById('cancel-progress');
+        const hideBtn = document.getElementById('hide-progress');
+        
+        // CORREÇÃO: Cria handlers que podem ser referenciados para remoção
+        this.progressModalHandlers = {
+            close: () => this.closeProgressModal(),
+            cancel: () => this.cancelProgress(),
+            hide: () => this.hideProgressModal()
+        };
+        
+        closeBtn.addEventListener('click', this.progressModalHandlers.close);
+        cancelBtn.addEventListener('click', this.progressModalHandlers.cancel);
+        hideBtn.addEventListener('click', this.progressModalHandlers.hide);
+    }
+
+    removeProgressModalEventListeners() {
+        if (this.progressModalHandlers) {
+            const closeBtn = document.getElementById('close-progress-modal');
+            const cancelBtn = document.getElementById('cancel-progress');
+            const hideBtn = document.getElementById('hide-progress');
+            
+            closeBtn?.removeEventListener('click', this.progressModalHandlers.close);
+            cancelBtn?.removeEventListener('click', this.progressModalHandlers.cancel);
+            hideBtn?.removeEventListener('click', this.progressModalHandlers.hide);
+            
+            this.progressModalHandlers = null;
+        }
     }
 
     cancelProgress() {
@@ -1555,19 +1665,44 @@ class InfinityBulkManager {
     updateProgressDisplay() {
         const { analyzed, updated, failed, unchanged, total, status } = this.progressData;
         
-        // Update counters
-        document.getElementById('progress-analyzed').textContent = analyzed;
-        document.getElementById('progress-updated').textContent = updated;
-        document.getElementById('progress-failed').textContent = failed;
-        document.getElementById('progress-unchanged').textContent = unchanged;
+        // CORREÇÃO: Verifica se elementos existem antes de atualizar
+        const elements = {
+            analyzed: document.getElementById('progress-analyzed'),
+            updated: document.getElementById('progress-updated'),
+            failed: document.getElementById('progress-failed'),
+            unchanged: document.getElementById('progress-unchanged'),
+            bar: document.getElementById('progress-bar'),
+            text: document.getElementById('progress-text'),
+            status: document.getElementById('progress-status')
+        };
         
-        // Update progress bar
-        const percentage = total > 0 ? Math.round((updated + failed + unchanged) / total * 100) : 0;
-        document.getElementById('progress-bar').style.width = `${percentage}%`;
-        document.getElementById('progress-text').textContent = `${updated + failed + unchanged}/${total}`;
+        // Update counters with animation
+        if (elements.analyzed) elements.analyzed.textContent = analyzed;
+        if (elements.updated) elements.updated.textContent = updated;
+        if (elements.failed) elements.failed.textContent = failed;
+        if (elements.unchanged) elements.unchanged.textContent = unchanged;
         
-        // Update status
-        document.getElementById('progress-status').innerHTML = `<i class="fas fa-cogs mr-2"></i>${status}`;
+        // CORREÇÃO: Atualização da barra de progresso mais precisa
+        if (elements.bar && elements.text) {
+            const processed = analyzed; // Use analyzed as the base for progress
+            const percentage = total > 0 ? Math.round((processed / total) * 100) : 0;
+            
+            // Smooth animation for progress bar
+            elements.bar.style.width = `${Math.min(percentage, 100)}%`;
+            elements.text.textContent = `${processed}/${total}`;
+            
+            // Change bar color based on completion
+            if (percentage >= 100) {
+                elements.bar.className = elements.bar.className.replace('bg-green-500', 'bg-blue-500');
+            }
+        }
+        
+        // Update status with better formatting
+        if (elements.status) {
+            const icon = status.includes('concluído') ? 'fa-check-circle' : 
+                        status.includes('Erro') ? 'fa-exclamation-circle' : 'fa-cogs';
+            elements.status.innerHTML = `<i class="fas ${icon} mr-2"></i>${status}`;
+        }
     }
 
     startProgressMonitoring() {
@@ -1576,10 +1711,15 @@ class InfinityBulkManager {
             clearInterval(this.progressInterval);
         }
         
-        // Start monitoring every 1 second
+        // CORREÇÃO: Monitora progresso real e atualiza display mais frequentemente
         this.progressInterval = setInterval(() => {
             this.simulateProgressUpdate();
-        }, 1000);
+            
+            // Update display even if modal is visible
+            if (this.isProgressVisible) {
+                this.updateProgressDisplay();
+            }
+        }, 800); // Slightly faster updates for smoother experience
     }
 
     stopProgressMonitoring() {
@@ -1590,32 +1730,31 @@ class InfinityBulkManager {
     }
 
     simulateProgressUpdate() {
-        // Just refresh the display with current progress data
-        // The actual progress data is updated by the real API calls
-        if (this.isProgressVisible) {
+        // CORREÇÃO: Atualização mais robusta do progresso
+        if (this.isProgressVisible || this.currentOperation) {
             this.updateProgressDisplay();
         }
         
         // Check if processing is complete
-        const processed = this.progressData.updated + this.progressData.failed + this.progressData.unchanged;
+        const processed = this.progressData.analyzed;
         if (processed >= this.progressData.total && this.progressData.total > 0) {
             this.stopProgressMonitoring();
             
-            // Auto-close after 5 seconds if processing is complete
+            // CORREÇÃO: Auto-close apenas se explicitamente concluído
             if (this.isProgressVisible && this.progressData.status.includes('concluído')) {
                 setTimeout(() => {
-                    this.closeProgressModal();
-                    this.showNotification('Processamento concluído com sucesso!', 'success');
-                }, 5000);
+                    if (this.isProgressVisible) { // Check again in case user closed manually
+                        this.closeProgressModal();
+                        this.showNotification('Processamento concluído com sucesso!', 'success');
+                    }
+                }, 3000); // Reduced time for better UX
             }
         }
     }
 
     createVerDetalhesButton(targetButtonId) {
-        // Check if button already exists
-        if (document.getElementById('ver-detalhes-btn')) {
-            return;
-        }
+        // CORREÇÃO: Remove botão existente se houver
+        this.removeVerDetalhesButton();
         
         const targetButton = document.getElementById(targetButtonId);
         if (!targetButton) return;
@@ -1627,14 +1766,17 @@ class InfinityBulkManager {
         verDetalhesBtn.className = 'ml-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors';
         verDetalhesBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i>Ver Detalhes';
         
-        verDetalhesBtn.addEventListener('click', () => {
+        // CORREÇÃO: Armazena a referência do handler para remoção posterior
+        this.verDetalhesHandler = () => {
             if (this.currentOperation) {
                 this.showProgressModal(
                     this.getProgressTitle(this.currentOperation),
                     this.currentOperation
                 );
             }
-        });
+        };
+        
+        verDetalhesBtn.addEventListener('click', this.verDetalhesHandler);
         
         // Insert after target button
         targetButton.parentNode.insertBefore(verDetalhesBtn, targetButton.nextSibling);
@@ -1643,6 +1785,11 @@ class InfinityBulkManager {
     removeVerDetalhesButton() {
         const btn = document.getElementById('ver-detalhes-btn');
         if (btn) {
+            // CORREÇÃO: Remove o event listener antes de remover o botão
+            if (this.verDetalhesHandler) {
+                btn.removeEventListener('click', this.verDetalhesHandler);
+                this.verDetalhesHandler = null;
+            }
             btn.remove();
         }
     }
@@ -1660,6 +1807,70 @@ class InfinityBulkManager {
             default:
                 return 'Diagnóstico do Processamento';
         }
+    }
+
+    // REAL-TIME: Poll operation progress and update modal in real-time
+    async pollOperationProgress(operationId) {
+        console.log(`🔄 Starting real-time progress polling for operation: ${operationId}`);
+        
+        return new Promise((resolve) => {
+            const pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/operation-progress/${operationId}`);
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        console.error('❌ Progress polling error:', data.error);
+                        clearInterval(pollInterval);
+                        resolve();
+                        return;
+                    }
+                    
+                    if (data.success && data.progress) {
+                        const progress = data.progress;
+                        console.log(`📊 Progress update: ${progress.analyzed}/${progress.total} (${progress.percentage}%)`);
+                        
+                        // CRITICAL: Update the progressData object that feeds the modal
+                        this.progressData.analyzed = progress.analyzed || 0;
+                        this.progressData.updated = progress.updated || 0;
+                        this.progressData.failed = progress.failed || 0;
+                        this.progressData.unchanged = progress.unchanged || 0;
+                        this.progressData.total = progress.total || 0;
+                        this.progressData.status = progress.status || 'Processando...';
+                        this.progressData.details = progress.details || [];
+                        
+                        // CRITICAL: Force update the progress display immediately
+                        if (this.isProgressVisible) {
+                            this.updateProgressDisplay();
+                        }
+                        
+                        // Check if operation is complete
+                        if (progress.status === 'completed' || progress.isComplete) {
+                            console.log(`✅ Operation ${operationId} completed successfully`);
+                            clearInterval(pollInterval);
+                            
+                            // Clean up the operation from backend
+                            fetch(`/api/operation-progress/${operationId}`, {
+                                method: 'DELETE'
+                            }).catch(err => console.log('Cleanup error:', err));
+                            
+                            resolve();
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.error('❌ Error polling progress:', error);
+                    // Continue polling even on errors - temporary network issues shouldn't stop progress tracking
+                }
+            }, 1000); // Poll every 1 second for real-time updates
+            
+            // Timeout after 5 minutes to prevent infinite polling
+            setTimeout(() => {
+                clearInterval(pollInterval);
+                console.log(`⏰ Progress polling timeout for operation: ${operationId}`);
+                resolve();
+            }, 300000); // 5 minutes timeout
+        });
     }
 }
 

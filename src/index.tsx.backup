@@ -1630,7 +1630,7 @@ app.post('/api/bulk-update-variant-values', async (c) => {
       })
       
       const batchPromises = batch.map(async (product) => {
-        try {
+      try {
         let hasChanges = false
         const updatedVariants = []
         
@@ -1730,64 +1730,17 @@ app.post('/api/bulk-update-variant-values', async (c) => {
           
           console.log(`✅ ${product.title}: ${updatedVariants.length} variantes atualizadas`)
         }
-          
-          return {
-            productId: product.id,
-            title: product.title.substring(0, 50),
-            success: hasChanges && updatedVariants.length > 0,
-            changes: hasChanges ? `${updatedVariants.length} variantes atualizadas` : 'Nenhuma alteração necessária'
-          }
-        } catch (error) {
-          return {
-            productId: product.id,
-            title: product.title.substring(0, 50),
-            success: false,
-            error: error instanceof Error ? error.message.substring(0, 100) : 'Erro desconhecido'
-          }
-        }
-      })
-      
-      // SPEED: Wait for batch to complete
-      const batchResults = await Promise.allSettled(batchPromises)
-      
-      batchResults.forEach(result => {
-        if (result.status === 'fulfilled') {
-          results.push(result.value)
-          if (result.value.success) {
-            updatedCount++
-          } else if (result.value.error) {
-            failedCount++
-          }
-        } else {
-          failedCount++
-          results.push({
-            productId: 'unknown',
-            title: 'Erro no batch',
-            success: false,
-            error: 'Batch processing failed'
-          })
-        }
-      })
-      
-      // REAL-TIME: Update progress after each batch
-      const analyzed = (batchIndex + 1) * batchSize
-      const actualAnalyzed = Math.min(analyzed, productsToProcess.length)
-      
-      updateOperationProgress(operationId, {
-        analyzed: actualAnalyzed,
-        updated: updatedCount,
-        failed: failedCount,
-        unchanged: Math.max(0, actualAnalyzed - updatedCount - failedCount),
-        status: `Processados ${actualAnalyzed}/${productsToProcess.length} produtos`,
-        details: [
-          `Lote ${batchIndex + 1}/${batches.length} concluído`,
-          `${updatedCount} atualizados, ${failedCount} falhas`
-        ]
-      })
-      
-      // SPEED: Small delay between batches to respect rate limits
-      if (batchIndex < batches.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 150))
+        
+      } catch (error) {
+        failedCount++
+        results.push({
+          success: false,
+          productId: product.id,
+          title: product.title,
+          error: error instanceof Error ? error.message : 'Erro desconhecido'
+        })
+        
+        console.error(`❌ Erro ao processar produto ${product.id}:`, error)
       }
     }
     
