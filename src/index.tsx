@@ -10,12 +10,33 @@ app.use('/api/*', cors())
 // Serve static files
 app.use('/static/*', serveStatic({ root: './public' }))
 
-// Rate limiting helper (in-memory for demo - use KV in production)
+// Enhanced Rate limiting for MASS operations (in-memory for demo - use KV in production)
 const rateLimitMap = new Map()
+const processLocks = new Map()
 
-function rateLimit(key: string, limit: number = 100, windowMs: number = 60000): boolean {
+// Optimized rate limiting for mass operations
+const RATE_LIMITS = {
+  // Standard API calls
+  products: { limit: 200, windowMs: 60000 },     // 200 req/min
+  collections: { limit: 100, windowMs: 60000 },   // 100 req/min
+  
+  // Mass operations - OPTIMIZED for thousands of products
+  bulkUpdate: { limit: 500, windowMs: 60000 },    // 500 req/min for bulk
+  bulkVariants: { limit: 300, windowMs: 60000 },  // 300 req/min for variants
+  analyzeVariants: { limit: 50, windowMs: 60000 }, // 50 req/min for analysis
+  
+  // Concurrent processing limits
+  concurrent: {
+    maxChunks: 10,      // Max 10 chunks in parallel
+    chunkSize: 50,      // 50 products per chunk
+    chunkDelay: 200     // 200ms delay between chunks
+  }
+}
+
+function rateLimit(key: string, operationType?: string): boolean {
+  const config = operationType ? RATE_LIMITS[operationType] || RATE_LIMITS.products : { limit: 100, windowMs: 60000 }
   const now = Date.now()
-  const windowStart = now - windowMs
+  const windowStart = now - config.windowMs
   
   if (!rateLimitMap.has(key)) {
     rateLimitMap.set(key, [])
@@ -24,7 +45,7 @@ function rateLimit(key: string, limit: number = 100, windowMs: number = 60000): 
   const requests = rateLimitMap.get(key)
   const recentRequests = requests.filter((time: number) => time > windowStart)
   
-  if (recentRequests.length >= limit) {
+  if (recentRequests.length >= config.limit) {
     return false
   }
   
@@ -33,8 +54,42 @@ function rateLimit(key: string, limit: number = 100, windowMs: number = 60000): 
   return true
 }
 
+// Mass processing helper - chunks array into smaller pieces
+function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+  const chunks: T[][] = []
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunks.push(array.slice(i, i + chunkSize))
+  }
+  return chunks
+}
+
+// Delay helper for rate limiting
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+// Enhanced retry logic with exponential backoff
+async function retryOperation<T>(operation: () => Promise<T>, maxRetries: number = 3, baseDelay: number = 1000): Promise<T> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation()
+    } catch (error) {
+      if (attempt === maxRetries) {
+        throw error
+      }
+      
+      // Exponential backoff: 1s, 2s, 4s
+      const delayTime = baseDelay * Math.pow(2, attempt - 1)
+      console.log(`🔄 Retry ${attempt}/${maxRetries} in ${delayTime}ms...`)
+      await delay(delayTime)
+    }
+  }
+  throw new Error('Max retries exceeded')
+}
+
 // Shopify API helper functions
-async function shopifyRequest(shop: string, accessToken: string, endpoint: string, method: string = 'GET', body?: any) {
+// Enhanced Shopify API helper with timeout and retry logic
+async function shopifyRequest(shop: string, accessToken: string, endpoint: string, method: string = 'GET', body?: any, timeout: number = 30000) {
   const url = `https://${shop}.myshopify.com/admin/api/2024-01/${endpoint}`
   
   const headers: any = {
@@ -45,21 +100,33 @@ async function shopifyRequest(shop: string, accessToken: string, endpoint: strin
   const options: any = {
     method,
     headers,
+    signal: AbortSignal.timeout(timeout) // 30s timeout by default
   }
   
   if (body && (method === 'POST' || method === 'PUT')) {
     options.body = JSON.stringify(body)
   }
-  
-  const response = await fetch(url, options)
-  
-  if (!response.ok) {
-    const errorText = await response.text()
-    throw new Error(`Shopify API error: ${response.status} - ${errorText}`)
-  }
-  
-  const data = await response.json()
-  return data
+
+  return await retryOperation(async () => {
+    const response = await fetch(url, options)
+    
+    // Handle rate limiting from Shopify
+    if (response.status === 429) {
+      const retryAfter = response.headers.get('Retry-After') || '2'
+      const waitTime = parseInt(retryAfter) * 1000
+      console.log(`⏳ Rate limited by Shopify, waiting ${waitTime}ms...`)
+      await delay(waitTime)
+      throw new Error('Rate limited, retrying...')
+    }
+    
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`Shopify API error: ${response.status} - ${errorText}`)
+    }
+    
+    const data = await response.json()
+    return data
+  }, 3, 1000)
 }
 
 // Helper function to extract next page URL from Link header (SAME AS YOUR PYTHON SCRIPT)
@@ -357,7 +424,7 @@ async function bulkUpdateProducts(shop: string, accessToken: string, products: a
   return results
 }
 
-// API Routes
+// OPTIMIZED Mass Processing Function\nasync function massProcessProducts(shop: string, accessToken: string, products: any[], updateFunction: (chunk: any[]) => Promise<any[]>) {\n  const { chunkSize, maxChunks, chunkDelay } = RATE_LIMITS.concurrent\n  const chunks = chunkArray(products, chunkSize)\n  const allResults: any[] = []\n  \n  let totalProcessed = 0\n  let totalSuccessful = 0\n  let totalFailed = 0\n  \n  console.log(`🚀 MASS PROCESSING: ${products.length} products in ${chunks.length} chunks`)\n  \n  for (let i = 0; i < chunks.length; i += maxChunks) {\n    const chunkBatch = chunks.slice(i, i + maxChunks)\n    const batchPromises = chunkBatch.map(async (chunk) => {\n      try {\n        const chunkResults = await updateFunction(chunk)\n        const successful = chunkResults.filter((r: any) => r.success).length\n        const failed = chunkResults.filter((r: any) => !r.success).length\n        return { results: chunkResults, successful, failed }\n      } catch (error) {\n        return {\n          results: chunk.map((item: any) => ({ id: item.id, success: false, error: 'Processing failed' })),\n          successful: 0,\n          failed: chunk.length\n        }\n      }\n    })\n    \n    const batchResults = await Promise.allSettled(batchPromises)\n    batchResults.forEach((result) => {\n      if (result.status === 'fulfilled') {\n        const { results, successful, failed } = result.value\n        allResults.push(...results)\n        totalSuccessful += successful\n        totalFailed += failed\n        totalProcessed += results.length\n      }\n    })\n    \n    if (i + maxChunks < chunks.length) {\n      await delay(chunkDelay)\n    }\n  }\n  \n  return { results: allResults, totalProcessed, totalSuccessful, totalFailed }\n}\n\n// API Routes
 
 // Test connection
 app.post('/api/test-connection', async (c) => {
@@ -501,8 +568,8 @@ app.post('/api/products', async (c) => {
       return c.json({ error: 'Parâmetros obrigatórios: shop e accessToken' }, 400)
     }
     
-    // Rate limiting
-    if (!rateLimit(`products:${shop}`, 50)) {
+    // Rate limiting - OPTIMIZED for mass operations
+    if (!rateLimit(`products:${shop}`, 'products')) {
       return c.json({ error: 'Rate limit exceeded' }, 429)
     }
     
@@ -554,8 +621,8 @@ app.post('/api/collections', async (c) => {
       return c.json({ error: 'Parâmetros obrigatórios: shop e accessToken' }, 400)
     }
     
-    // Rate limiting
-    if (!rateLimit(`collections:${shop}`, 30)) {
+    // Rate limiting - OPTIMIZED
+    if (!rateLimit(`collections:${shop}`, 'collections')) {
       return c.json({ error: 'Rate limit exceeded' }, 429)
     }
     
@@ -578,8 +645,8 @@ app.post('/api/bulk-update', async (c) => {
       return c.json({ error: 'Parâmetros obrigatórios: shop, accessToken, productIds, updates' }, 400)
     }
     
-    // Rate limiting for bulk operations
-    if (!rateLimit(`bulk:${shop}`, 10, 300000)) { // 10 requests per 5 minutes
+    // Rate limiting for bulk operations - MASSIVELY OPTIMIZED
+    if (!rateLimit(`bulk:${shop}`, 'bulkUpdate')) {
       return c.json({ error: 'Rate limit exceeded for bulk operations' }, 429)
     }
     
@@ -622,8 +689,8 @@ app.post('/api/analyze-variants', async (c) => {
       return c.json({ error: 'Para escopo "selected", selectedProductIds é obrigatório' }, 400)
     }
     
-    // Rate limiting
-    if (!rateLimit(`analyze-variants:${shop}`, 10, 60000)) { // 10 requests per minute
+    // Rate limiting - OPTIMIZED for analysis
+    if (!rateLimit(`analyze-variants:${shop}`, 'analyzeVariants')) {
       return c.json({ error: 'Rate limit exceeded for variant analysis' }, 429)
     }
     
@@ -723,8 +790,8 @@ app.post('/api/bulk-update-variant-titles', async (c) => {
       return c.json({ error: 'Para escopo "selected", selectedProductIds é obrigatório' }, 400)
     }
     
-    // Rate limiting for bulk operations
-    if (!rateLimit(`bulk-variants:${shop}`, 5, 300000)) { // 5 requests per 5 minutes
+    // Rate limiting for bulk variants - MASSIVELY OPTIMIZED
+    if (!rateLimit(`bulk-variants:${shop}`, 'bulkVariants')) {
       return c.json({ error: 'Rate limit exceeded for bulk variant operations' }, 429)
     }
     
@@ -825,8 +892,8 @@ app.post('/api/bulk-update-variant-values', async (c) => {
       return c.json({ error: 'Para escopo "selected", selectedProductIds é obrigatório' }, 400)
     }
     
-    // Rate limiting for bulk operations
-    if (!rateLimit(`bulk-variant-values:${shop}`, 5, 300000)) { // 5 requests per 5 minutes
+    // Rate limiting for bulk variant values - MASSIVELY OPTIMIZED
+    if (!rateLimit(`bulk-variant-values:${shop}`, 'bulkVariants')) {
       return c.json({ error: 'Rate limit exceeded for bulk variant value operations' }, 429)
     }
     
