@@ -46,13 +46,6 @@ class InfinityBulkManager {
         // Bulk modal controls
         document.getElementById('close-modal').addEventListener('click', () => this.closeBulkModal());
         document.getElementById('cancel-bulk').addEventListener('click', () => this.closeBulkModal());
-        document.getElementById('cancel-bulk-top').addEventListener('click', () => this.closeBulkModal()); // Mesmo comportamento
-        // Botão do topo precisa de event listener específico pois está fora do form
-        document.getElementById('apply-bulk-top').addEventListener('click', (e) => {
-            e.preventDefault();
-            // Simular submit do form
-            document.getElementById('bulk-edit-form').requestSubmit();
-        });
         document.getElementById('bulk-edit-form').addEventListener('submit', (e) => this.submitBulkEdit(e));
         
         // Variant titles modal controls
@@ -64,10 +57,6 @@ class InfinityBulkManager {
         // Tab controls
         document.getElementById('tab-titles').addEventListener('click', () => this.switchTab('titles'));
         document.getElementById('tab-values').addEventListener('click', () => this.switchTab('values'));
-        
-        // Variant scope controls (apply scope)
-        document.getElementById('scope-all').addEventListener('change', () => this.updateVariantScopeInfo());
-        document.getElementById('scope-selected').addEventListener('change', () => this.updateVariantScopeInfo());
         
         // Load scope controls
         document.getElementById('load-scope-all').addEventListener('change', () => this.updateLoadScopeInfo());
@@ -780,8 +769,7 @@ class InfinityBulkManager {
         // Reset state
         this.resetVariantModal();
         
-        // Update scope information
-        this.updateVariantScopeInfo();
+        // Update load scope information
         this.updateLoadScopeInfo();
     }
 
@@ -822,19 +810,7 @@ class InfinityBulkManager {
         }
     }
 
-    updateVariantScopeInfo() {
-        const scopeAll = document.getElementById('scope-all');
-        const scopeInfoText = document.getElementById('scope-info-text');
-        const selectedCountDisplay = document.getElementById('selected-count-display');
-        
-        if (scopeAll.checked) {
-            scopeInfoText.textContent = 'As alterações serão aplicadas a todos os produtos que possuem as opções especificadas';
-        } else {
-            const selectedCount = this.selectedProducts.size;
-            scopeInfoText.textContent = `As alterações serão aplicadas apenas aos ${selectedCount} produtos selecionados que possuem as opções especificadas`;
-            selectedCountDisplay.textContent = `Aplicar apenas aos ${selectedCount} produtos selecionados na tabela`;
-        }
-    }
+
 
     updateLoadScopeInfo() {
         const selectedCount = this.selectedProducts.size;
@@ -1069,9 +1045,9 @@ class InfinityBulkManager {
         applyBtn.disabled = true;
         
         try {
-            // Get selected scope
-            const scopeAll = document.getElementById('scope-all').checked;
-            const selectedProductIds = scopeAll ? null : Array.from(this.selectedProducts);
+            // Use the same scope that was used for loading variants
+            const loadScopeAll = document.getElementById('load-scope-all').checked;
+            const selectedProductIds = loadScopeAll ? null : Array.from(this.selectedProducts);
             
             // Apply title changes first if any
             let titleResults = null;
@@ -1085,7 +1061,7 @@ class InfinityBulkManager {
                         shop: this.shopName,
                         accessToken: this.accessToken,
                         titleMappings: titleMappings,
-                        scope: scopeAll ? 'all' : 'selected',
+                        scope: loadScopeAll ? 'all' : 'selected',
                         selectedProductIds: selectedProductIds
                     })
                 });
@@ -1096,23 +1072,47 @@ class InfinityBulkManager {
                 }
             }
             
-            // TODO: Apply value changes (this would need a new API endpoint)
+            // Apply value changes if any
             let valueResults = null;
             if (valueChanges.length > 0) {
-                // For now, just show that value changes are not yet implemented
-                this.showError('Edição de valores de variantes será implementada em breve. Títulos foram atualizados com sucesso.');
+                const valueResponse = await fetch('/api/bulk-update-variant-values', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        shop: this.shopName,
+                        accessToken: this.accessToken,
+                        valueMappings: valueChanges,
+                        scope: loadScopeAll ? 'all' : 'selected',
+                        selectedProductIds: selectedProductIds
+                    })
+                });
+                
+                valueResults = await valueResponse.json();
+                if (!valueResponse.ok) {
+                    throw new Error(valueResults.error || 'Erro na atualização de valores');
+                }
             }
             
-            this.closeVariantTitlesModal();
-            
-            if (titleResults) {
+            // Handle different scenarios
+            if (titleResults && valueResults) {
+                // Both titles and values were changed successfully
+                this.closeVariantTitlesModal();
                 this.showVariantTitlesResults(titleResults);
+                this.showSuccess(`✅ Alterações aplicadas com sucesso! Títulos: ${titleResults.updatedCount} produtos, Valores: ${valueResults.updatedCount} produtos atualizados.`);
+            } else if (titleResults) {
+                // Only titles were changed and succeeded
+                this.closeVariantTitlesModal();
+                this.showVariantTitlesResults(titleResults);
+            } else if (valueResults) {
+                // Only values were changed and succeeded
+                this.closeVariantTitlesModal();
+                this.showVariantValuesResults(valueResults);
             }
             
-            // Reload products to show updated data
-            setTimeout(() => {
-                this.loadProducts();
-            }, 2000);
+            // Note: Manual reload removed to prevent automatic reloading
+            // User can manually reload products using the "Carregar Todos os Produtos" button if needed
             
         } catch (error) {
             this.showError('Erro nas alterações de variantes: ' + error.message);
@@ -1199,6 +1199,143 @@ class InfinityBulkManager {
         
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+    }
+
+    showVariantValuesResults(data) {
+        const modal = document.getElementById('results-modal');
+        const content = document.getElementById('results-content');
+        
+        const updatedCount = data.updatedCount || 0;
+        const failedCount = data.failedCount || 0;
+        const totalProducts = data.totalProducts || 0;
+        
+        content.innerHTML = `
+            <div class="mb-6">
+                <h4 class="text-lg font-bold text-gray-800 mb-4">
+                    <i class="fas fa-dollar-sign mr-2"></i>
+                    Resultados da Atualização de Valores de Variantes
+                </h4>
+                
+                <div class="grid grid-cols-4 gap-4 mb-4">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-blue-600">${totalProducts}</div>
+                        <div class="text-sm text-blue-600">Produtos Analisados</div>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-green-600">${updatedCount}</div>
+                        <div class="text-sm text-green-600">Produtos Atualizados</div>
+                    </div>
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-red-600">${failedCount}</div>
+                        <div class="text-sm text-red-600">Falhas</div>
+                    </div>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-yellow-600">${totalProducts - updatedCount - failedCount}</div>
+                        <div class="text-sm text-yellow-600">Sem Alteração</div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-gray-700">Progresso</span>
+                        <span class="text-sm text-gray-600">${updatedCount}/${totalProducts}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-500 h-2 rounded-full" style="width: ${totalProducts > 0 ? (updatedCount/totalProducts)*100 : 0}%"></div>
+                    </div>
+                </div>
+            </div>
+            
+            ${data.results && data.results.length > 0 ? `
+                <div class="max-h-64 overflow-y-auto">
+                    <h5 class="font-medium text-gray-800 mb-3">Produtos Atualizados (${data.results.length} primeiros):</h5>
+                    <div class="space-y-2">
+                        ${data.results.filter(r => r.success).map(result => `
+                            <div class="flex items-center justify-between p-3 rounded bg-green-50 border border-green-200">
+                                <div>
+                                    <span class="font-medium text-gray-800">${result.title}</span>
+                                    <div class="text-sm text-gray-600">ID: ${result.productId}</div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-green-600 text-sm"><i class="fas fa-check mr-1"></i>Sucesso</span>
+                                    <div class="text-xs text-gray-500">${result.changes}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                        ${data.results.filter(r => !r.success).map(result => `
+                            <div class="flex items-center justify-between p-3 rounded bg-red-50 border border-red-200">
+                                <div>
+                                    <span class="font-medium text-gray-800">${result.title}</span>
+                                    <div class="text-sm text-gray-600">ID: ${result.productId}</div>
+                                </div>
+                                <span class="text-red-600 text-sm" title="${result.error}"><i class="fas fa-times mr-1"></i>Erro</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : ''}
+        `;
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    showVariantMessage(message, type = 'info') {
+        // Create or update message div within the variant modal
+        let messageDiv = document.getElementById('variant-modal-message');
+        if (!messageDiv) {
+            messageDiv = document.createElement('div');
+            messageDiv.id = 'variant-modal-message';
+            
+            // Insert after the modal header
+            const modalContent = document.querySelector('#variant-titles-modal .bg-white');
+            const header = modalContent.querySelector('.flex.justify-between.items-center');
+            header.parentNode.insertBefore(messageDiv, header.nextSibling);
+        }
+        
+        // Style based on type
+        let bgColor, borderColor, textColor, icon;
+        switch (type) {
+            case 'error':
+                bgColor = 'bg-red-50';
+                borderColor = 'border-red-200';
+                textColor = 'text-red-700';
+                icon = 'fas fa-exclamation-circle';
+                break;
+            case 'success':
+                bgColor = 'bg-green-50';
+                borderColor = 'border-green-200';
+                textColor = 'text-green-700';
+                icon = 'fas fa-check-circle';
+                break;
+            case 'info':
+            default:
+                bgColor = 'bg-blue-50';
+                borderColor = 'border-blue-200';
+                textColor = 'text-blue-700';
+                icon = 'fas fa-info-circle';
+                break;
+        }
+        
+        messageDiv.className = `mt-4 p-4 ${bgColor} border ${borderColor} rounded-lg ${textColor}`;
+        messageDiv.innerHTML = `
+            <div class="flex items-start">
+                <i class="${icon} mt-0.5 mr-3"></i>
+                <div class="flex-1">${message}</div>
+                <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        
+        // Auto-remove after 8 seconds for info messages
+        if (type === 'info') {
+            setTimeout(() => {
+                if (messageDiv && messageDiv.parentNode) {
+                    messageDiv.remove();
+                }
+            }, 8000);
+        }
     }
 
     showError(message) {
