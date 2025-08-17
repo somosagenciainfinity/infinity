@@ -201,59 +201,6 @@ async function shopifyRequest(shop: string, accessToken: string, endpoint: strin
   }, 3, 1000)
 }
 
-// REAL-TIME: Get recently updated products from Shopify API
-async function getRecentlyUpdatedProducts(shop: string, accessToken: string, sinceTime: Date): Promise<any[]> {
-  try {
-    // Format timestamp for Shopify API (ISO format)
-    const sinceTimestamp = sinceTime.toISOString()
-    
-    console.log(`🔍 Querying Shopify for products updated since: ${sinceTimestamp}`)
-    
-    // Query products updated since the given time
-    const response = await shopifyRequest(
-      shop, 
-      accessToken, 
-      `products.json?updated_at_min=${encodeURIComponent(sinceTimestamp)}&fields=id,title,updated_at&limit=250`
-    )
-    
-    if (response.products) {
-      console.log(`📊 Found ${response.products.length} recently updated products`)
-      return response.products
-    }
-    
-    return []
-  } catch (error) {
-    console.error('❌ Error fetching recently updated products:', error)
-    return []
-  }
-}
-
-// REAL-TIME: Get real progress data from Shopify API
-async function getRealProgressFromShopify(shop: string, accessToken: string, operationStartTime: Date, totalProducts: number): Promise<any> {
-  try {
-    // Get products updated since operation started
-    const recentlyUpdated = await getRecentlyUpdatedProducts(shop, accessToken, operationStartTime)
-    
-    // Calculate real progress
-    const analyzed = Math.min(recentlyUpdated.length, totalProducts)
-    const updated = recentlyUpdated.length
-    const failed = 0 // We'll get this from API errors in the actual operation
-    const unchanged = Math.max(0, totalProducts - updated)
-    
-    return {
-      analyzed,
-      updated,
-      failed,
-      unchanged,
-      total: totalProducts,
-      recentlyUpdatedProducts: recentlyUpdated
-    }
-  } catch (error) {
-    console.error('❌ Error getting real progress from Shopify:', error)
-    return null
-  }
-}
-
 // Helper function to extract next page URL from Link header (SAME AS YOUR PYTHON SCRIPT)
 function getNextPageUrl(linkHeader: string): string {
   if (!linkHeader) {
@@ -1683,7 +1630,7 @@ app.post('/api/bulk-update-variant-values', async (c) => {
       })
       
       const batchPromises = batch.map(async (product) => {
-        try {
+      try {
         let hasChanges = false
         const updatedVariants = []
         
@@ -1783,65 +1730,30 @@ app.post('/api/bulk-update-variant-values', async (c) => {
           
           console.log(`✅ ${product.title}: ${updatedVariants.length} variantes atualizadas`)
         }
-          
-          return {
-            productId: product.id,
-            title: product.title.substring(0, 50),
-            success: hasChanges && updatedVariants.length > 0,
-            changes: hasChanges ? `${updatedVariants.length} variantes atualizadas` : 'Nenhuma alteração necessária'
-          }
-        } catch (error) {
-          return {
-            productId: product.id,
-            title: product.title.substring(0, 50),
-            success: false,
-            error: error instanceof Error ? error.message.substring(0, 100) : 'Erro desconhecido'
-          }
-        }
-      })
+        
+      } catch (error) {
+        failedCount++
+        results.push({
+          success: false,
+          productId: product.id,
+          title: product.title,
+          error: error instanceof Error ? error.message : 'Erro desconhecido'
+        })
+        
+        console.error(`❌ Erro ao processar produto ${product.id}:`, error)
+      }
+      }) // Closes the batch.map function
       
-      // SPEED: Wait for batch to complete
-      const batchResults = await Promise.allSettled(batchPromises)
+      // Wait for all promises in batch to complete
+      await Promise.all(batchPromises)
       
-      batchResults.forEach(result => {
-        if (result.status === 'fulfilled') {
-          results.push(result.value)
-          if (result.value.success) {
-            updatedCount++
-          } else if (result.value.error) {
-            failedCount++
-          }
-        } else {
-          failedCount++
-          results.push({
-            productId: 'unknown',
-            title: 'Erro no batch',
-            success: false,
-            error: 'Batch processing failed'
-          })
-        }
-      })
-      
-      // REAL-TIME: Update progress after each batch
-      const analyzed = (batchIndex + 1) * batchSize
-      const actualAnalyzed = Math.min(analyzed, productsToProcess.length)
-      
+      // REAL-TIME: Update progress after batch completion
       updateOperationProgress(operationId, {
-        analyzed: actualAnalyzed,
+        analyzed: (batchIndex + 1) * batchSize,
         updated: updatedCount,
         failed: failedCount,
-        unchanged: Math.max(0, actualAnalyzed - updatedCount - failedCount),
-        status: `Processados ${actualAnalyzed}/${productsToProcess.length} produtos`,
-        details: [
-          `Lote ${batchIndex + 1}/${batches.length} concluído`,
-          `${updatedCount} atualizados, ${failedCount} falhas`
-        ]
+        status: `Lote ${batchIndex + 1}/${batches.length} concluído`
       })
-      
-      // SPEED: Small delay between batches to respect rate limits
-      if (batchIndex < batches.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 150))
-      }
     }
     
     const processTime = Date.now() - startTime
@@ -1917,174 +1829,6 @@ app.delete('/api/operation-progress/:operationId', async (c) => {
   const operationId = c.req.param('operationId')
   activeOperations.delete(operationId)
   return c.json({ success: true, message: 'Operation progress cleared' })
-})
-
-// REAL-TIME progress with REAL Shopify API data
-app.get('/api/real-progress/:operationId', async (c) => {
-  try {
-    const operationId = c.req.param('operationId')
-    const { shop, accessToken } = c.req.query()
-    
-    if (!operationId || !shop || !accessToken) {
-      return c.json({ error: 'Operation ID, shop, and accessToken are required' }, 400)
-    }
-    
-    // Get operation from memory (contains start time and total)
-    const operation = activeOperations.get(operationId)
-    if (!operation) {
-      return c.json({ 
-        error: 'Operation not found',
-        operationId 
-      }, 404)
-    }
-    
-    console.log(`🔍 Getting REAL progress from Shopify API for operation: ${operationId}`)
-    
-    // Get REAL data from Shopify API
-    const operationStartTime = new Date(operation.startTime)
-    const realProgress = await getRealProgressFromShopify(
-      shop, 
-      accessToken, 
-      operationStartTime, 
-      operation.total
-    )
-    
-    if (realProgress) {
-      // Update the operation with REAL data from Shopify
-      const updatedProgress = {
-        ...operation,
-        analyzed: realProgress.analyzed,
-        updated: realProgress.updated,
-        failed: realProgress.failed,
-        unchanged: realProgress.unchanged,
-        lastUpdate: Date.now(),
-        status: realProgress.updated > 0 ? 
-          `${realProgress.updated} produtos atualizados na Shopify (dados reais)` : 
-          'Consultando atualizações na API Shopify...',
-        details: [
-          `Consultando API Shopify em tempo real`,
-          `${realProgress.updated} produtos efetivamente atualizados`,
-          `Dados obtidos diretamente da loja`
-        ]
-      }
-      
-      // Update in memory with real data
-      activeOperations.set(operationId, updatedProgress)
-      
-      const percentage = operation.total > 0 ? Math.round((realProgress.analyzed / operation.total) * 100) : 0
-      const elapsed = Date.now() - operation.startTime
-      
-      return c.json({
-        success: true,
-        operationId,
-        source: 'shopify-api', // Indicate this is real data
-        progress: {
-          ...updatedProgress,
-          percentage,
-          elapsedMs: elapsed,
-          isComplete: realProgress.analyzed >= operation.total,
-          recentlyUpdatedProducts: realProgress.recentlyUpdatedProducts?.slice(0, 5) // Show first 5 as sample
-        }
-      })
-    } else {
-      // Fallback to stored progress if API fails
-      const percentage = operation.total > 0 ? Math.round((operation.analyzed / operation.total) * 100) : 0
-      const elapsed = Date.now() - operation.startTime
-      
-      return c.json({
-        success: true,
-        operationId,
-        source: 'fallback', // Indicate this is fallback data
-        progress: {
-          ...operation,
-          percentage,
-          elapsedMs: elapsed,
-          isComplete: operation.analyzed >= operation.total,
-          status: 'Erro ao consultar API Shopify - usando dados de fallback'
-        }
-      })
-    }
-    
-  } catch (error) {
-    console.error('❌ Error getting real progress:', error)
-    return c.json({ 
-      error: 'Error fetching real progress: ' + (error instanceof Error ? error.message : 'Unknown error')
-    }, 500)
-  }
-})
-
-// API endpoint for testing REAL Shopify API integration
-app.post('/api/test-real-shopify-progress', async (c) => {
-  try {
-    const { shop, accessToken, operationType } = await c.req.json()
-    
-    if (!shop || !accessToken) {
-      return c.json({ error: 'shop and accessToken are required for real testing' }, 400)
-    }
-    
-    // Create test operation
-    const operationId = `test-real-${Date.now()}-${Math.random().toString(36).substring(7)}`
-    const startTime = Date.now()
-    
-    // Initialize test operation
-    updateOperationProgress(operationId, {
-      type: operationType || 'test-real-api',
-      status: 'testing-real-api',
-      total: 10, // Small number for testing
-      analyzed: 0,
-      updated: 0,
-      failed: 0,
-      unchanged: 0,
-      details: [`Testando integração real com API Shopify da loja: ${shop}`]
-    })
-    
-    // Start background process to simulate real updates
-    setTimeout(async () => {
-      try {
-        console.log(`🧪 Testing real Shopify API integration for ${shop}`)
-        
-        // Get actual recent products from Shopify
-        const recentProducts = await getRecentlyUpdatedProducts(shop, accessToken, new Date(Date.now() - 86400000)) // Last 24 hours
-        
-        console.log(`📊 Found ${recentProducts.length} recently updated products in Shopify`)
-        
-        // Update operation with real data
-        updateOperationProgress(operationId, {
-          analyzed: Math.min(recentProducts.length, 10),
-          updated: recentProducts.length,
-          failed: 0,
-          unchanged: Math.max(0, 10 - recentProducts.length),
-          status: `Teste concluído: ${recentProducts.length} produtos encontrados na API Shopify`,
-          details: [
-            `Conexão com API Shopify: ✅ Sucesso`,
-            `Produtos encontrados: ${recentProducts.length}`,
-            `Dados obtidos diretamente da loja ${shop}`,
-            `Produtos recentes: ${recentProducts.slice(0, 3).map(p => p.title).join(', ')}`
-          ]
-        })
-        
-      } catch (error) {
-        console.error('❌ Real API test error:', error)
-        updateOperationProgress(operationId, {
-          status: 'Erro ao testar API Shopify',
-          failed: 1,
-          details: [`Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`]
-        })
-      }
-    }, 2000) // Start after 2 seconds
-    
-    return c.json({
-      success: true,
-      operationId,
-      message: 'Teste de API real iniciado - use /api/real-progress para acompanhar',
-      testEndpoint: `/api/real-progress/${operationId}?shop=${shop}&accessToken=${accessToken}`
-    })
-    
-  } catch (error) {
-    return c.json({ 
-      error: 'Erro no teste de API real: ' + (error instanceof Error ? error.message : 'Erro desconhecido')
-    }, 500)
-  }
 })
 
 // API endpoint for testing diagnostic modal

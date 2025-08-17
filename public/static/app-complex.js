@@ -717,7 +717,8 @@ class InfinityBulkManager {
             status: 'Iniciando processamento em massa...'
         };
         
-        // Removed "Ver Detalhes" button system
+        // Create "Ver Detalhes" button
+        this.createVerDetalhesButton('apply-bulk');
         
         try {
             const response = await fetch('/api/bulk-update', {
@@ -1169,7 +1170,8 @@ class InfinityBulkManager {
         
         this.currentOperation = operationType;
         
-        // Removed "Ver Detalhes" button system
+        // Create "Ver Detalhes" button
+        this.createVerDetalhesButton('apply-variant-changes');
         
         try {
             // Use the same scope that was used for loading variants
@@ -1750,8 +1752,47 @@ class InfinityBulkManager {
         }
     }
 
-    // REMOVED: createVerDetalhesButton and removeVerDetalhesButton functions
-    // No longer creating "Ver Detalhes" buttons
+    createVerDetalhesButton(targetButtonId) {
+        // CORREÇÃO: Remove botão existente se houver
+        this.removeVerDetalhesButton();
+        
+        const targetButton = document.getElementById(targetButtonId);
+        if (!targetButton) return;
+        
+        // Create "Ver Detalhes" button
+        const verDetalhesBtn = document.createElement('button');
+        verDetalhesBtn.id = 'ver-detalhes-btn';
+        verDetalhesBtn.type = 'button';
+        verDetalhesBtn.className = 'ml-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors';
+        verDetalhesBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i>Ver Detalhes';
+        
+        // CORREÇÃO: Armazena a referência do handler para remoção posterior
+        this.verDetalhesHandler = () => {
+            if (this.currentOperation) {
+                this.showProgressModal(
+                    this.getProgressTitle(this.currentOperation),
+                    this.currentOperation
+                );
+            }
+        };
+        
+        verDetalhesBtn.addEventListener('click', this.verDetalhesHandler);
+        
+        // Insert after target button
+        targetButton.parentNode.insertBefore(verDetalhesBtn, targetButton.nextSibling);
+    }
+
+    removeVerDetalhesButton() {
+        const btn = document.getElementById('ver-detalhes-btn');
+        if (btn) {
+            // CORREÇÃO: Remove o event listener antes de remover o botão
+            if (this.verDetalhesHandler) {
+                btn.removeEventListener('click', this.verDetalhesHandler);
+                this.verDetalhesHandler = null;
+            }
+            btn.remove();
+        }
+    }
 
     getProgressTitle(operation) {
         switch (operation) {

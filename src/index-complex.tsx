@@ -1,10 +1,583 @@
-var ae=(e,t,a)=>(s,r)=>{let o=-1;return n(0);async function n(i){if(i<=o)throw new Error("next() called multiple times");o=i;let l,c=!1,d;if(e[i]?(d=e[i][0][0],s.req.routeIndex=i):d=i===e.length&&r||void 0,d)try{l=await d(s,()=>n(i+1))}catch(u){if(u instanceof Error&&t)s.error=u,l=await t(u,s),c=!0;else throw u}else s.finalized===!1&&a&&(l=await a(s));return l&&(s.finalized===!1||c)&&(s.res=l),s}},Re=Symbol(),je=async(e,t=Object.create(null))=>{const{all:a=!1,dot:s=!1}=t,o=(e instanceof ge?e.raw.headers:e.headers).get("Content-Type");return o?.startsWith("multipart/form-data")||o?.startsWith("application/x-www-form-urlencoded")?Oe(e,{all:a,dot:s}):{}};async function Oe(e,t){const a=await e.formData();return a?ke(a,t):{}}function ke(e,t){const a=Object.create(null);return e.forEach((s,r)=>{t.all||r.endsWith("[]")?$e(a,r,s):a[r]=s}),t.dot&&Object.entries(a).forEach(([s,r])=>{s.includes(".")&&(Ie(a,s,r),delete a[s])}),a}var $e=(e,t,a)=>{e[t]!==void 0?Array.isArray(e[t])?e[t].push(a):e[t]=[e[t],a]:t.endsWith("[]")?e[t]=[a]:e[t]=a},Ie=(e,t,a)=>{let s=e;const r=t.split(".");r.forEach((o,n)=>{n===r.length-1?s[o]=a:((!s[o]||typeof s[o]!="object"||Array.isArray(s[o])||s[o]instanceof File)&&(s[o]=Object.create(null)),s=s[o])})},ce=e=>{const t=e.split("/");return t[0]===""&&t.shift(),t},Me=e=>{const{groups:t,path:a}=De(e),s=ce(a);return Le(s,t)},De=e=>{const t=[];return e=e.replace(/\{[^}]+\}/g,(a,s)=>{const r=`@${s}`;return t.push([r,a]),r}),{groups:t,path:e}},Le=(e,t)=>{for(let a=t.length-1;a>=0;a--){const[s]=t[a];for(let r=e.length-1;r>=0;r--)if(e[r].includes(s)){e[r]=e[r].replace(s,t[a][1]);break}}return e},B={},Ne=(e,t)=>{if(e==="*")return"*";const a=e.match(/^\:([^\{\}]+)(?:\{(.+)\})?$/);if(a){const s=`${e}#${t}`;return B[s]||(a[2]?B[s]=t&&t[0]!==":"&&t[0]!=="*"?[s,a[1],new RegExp(`^${a[2]}(?=/${t})`)]:[e,a[1],new RegExp(`^${a[2]}$`)]:B[s]=[e,a[1],!0]),B[s]}return null},J=(e,t)=>{try{return t(e)}catch{return e.replace(/(?:%[0-9A-Fa-f]{2})+/g,a=>{try{return t(a)}catch{return a}})}},ze=e=>J(e,decodeURI),de=e=>{const t=e.url,a=t.indexOf("/",t.charCodeAt(9)===58?13:8);let s=a;for(;s<t.length;s++){const r=t.charCodeAt(s);if(r===37){const o=t.indexOf("?",s),n=t.slice(a,o===-1?void 0:o);return ze(n.includes("%25")?n.replace(/%25/g,"%2525"):n)}else if(r===63)break}return t.slice(a,s)},_e=e=>{const t=de(e);return t.length>1&&t.at(-1)==="/"?t.slice(0,-1):t},D=(e,t,...a)=>(a.length&&(t=D(t,...a)),`${e?.[0]==="/"?"":"/"}${e}${t==="/"?"":`${e?.at(-1)==="/"?"":"/"}${t?.[0]==="/"?t.slice(1):t}`}`),ue=e=>{if(e.charCodeAt(e.length-1)!==63||!e.includes(":"))return null;const t=e.split("/"),a=[];let s="";return t.forEach(r=>{if(r!==""&&!/\:/.test(r))s+="/"+r;else if(/\:/.test(r))if(/\?/.test(r)){a.length===0&&s===""?a.push("/"):a.push(s);const o=r.replace("?","");s+="/"+o,a.push(s)}else s+="/"+r}),a.filter((r,o,n)=>n.indexOf(r)===o)},W=e=>/[%+]/.test(e)?(e.indexOf("+")!==-1&&(e=e.replace(/\+/g," ")),e.indexOf("%")!==-1?J(e,he):e):e,pe=(e,t,a)=>{let s;if(!a&&t&&!/[%+]/.test(t)){let n=e.indexOf(`?${t}`,8);for(n===-1&&(n=e.indexOf(`&${t}`,8));n!==-1;){const i=e.charCodeAt(n+t.length+1);if(i===61){const l=n+t.length+2,c=e.indexOf("&",l);return W(e.slice(l,c===-1?void 0:c))}else if(i==38||isNaN(i))return"";n=e.indexOf(`&${t}`,n+1)}if(s=/[%+]/.test(e),!s)return}const r={};s??=/[%+]/.test(e);let o=e.indexOf("?",8);for(;o!==-1;){const n=e.indexOf("&",o+1);let i=e.indexOf("=",o);i>n&&n!==-1&&(i=-1);let l=e.slice(o+1,i===-1?n===-1?void 0:n:i);if(s&&(l=W(l)),o=n,l==="")continue;let c;i===-1?c="":(c=e.slice(i+1,n===-1?void 0:n),s&&(c=W(c))),a?(r[l]&&Array.isArray(r[l])||(r[l]=[]),r[l].push(c)):r[l]??=c}return t?r[t]:r},He=pe,Ve=(e,t)=>pe(e,t,!0),he=decodeURIComponent,re=e=>J(e,he),ge=class{raw;#t;#e;routeIndex=0;path;bodyCache={};constructor(e,t="/",a=[[]]){this.raw=e,this.path=t,this.#e=a,this.#t={}}param(e){return e?this.#s(e):this.#o()}#s(e){const t=this.#e[0][this.routeIndex][1][e],a=this.#r(t);return a?/\%/.test(a)?re(a):a:void 0}#o(){const e={},t=Object.keys(this.#e[0][this.routeIndex][1]);for(const a of t){const s=this.#r(this.#e[0][this.routeIndex][1][a]);s&&typeof s=="string"&&(e[a]=/\%/.test(s)?re(s):s)}return e}#r(e){return this.#e[1]?this.#e[1][e]:e}query(e){return He(this.url,e)}queries(e){return Ve(this.url,e)}header(e){if(e)return this.raw.headers.get(e)??void 0;const t={};return this.raw.headers.forEach((a,s)=>{t[s]=a}),t}async parseBody(e){return this.bodyCache.parsedBody??=await je(this,e)}#a=e=>{const{bodyCache:t,raw:a}=this,s=t[e];if(s)return s;const r=Object.keys(t)[0];return r?t[r].then(o=>(r==="json"&&(o=JSON.stringify(o)),new Response(o)[e]())):t[e]=a[e]()};json(){return this.#a("text").then(e=>JSON.parse(e))}text(){return this.#a("text")}arrayBuffer(){return this.#a("arrayBuffer")}blob(){return this.#a("blob")}formData(){return this.#a("formData")}addValidatedData(e,t){this.#t[e]=t}valid(e){return this.#t[e]}get url(){return this.raw.url}get method(){return this.raw.method}get[Re](){return this.#e}get matchedRoutes(){return this.#e[0].map(([[,e]])=>e)}get routePath(){return this.#e[0].map(([[,e]])=>e)[this.routeIndex].path}},Be={Stringify:1},me=async(e,t,a,s,r)=>{typeof e=="object"&&!(e instanceof String)&&(e instanceof Promise||(e=e.toString()),e instanceof Promise&&(e=await e));const o=e.callbacks;return o?.length?(r?r[0]+=e:r=[e],Promise.all(o.map(i=>i({phase:t,buffer:r,context:s}))).then(i=>Promise.all(i.filter(Boolean).map(l=>me(l,t,!1,s,r))).then(()=>r[0]))):Promise.resolve(e)},Fe="text/plain; charset=UTF-8",Y=(e,t)=>({"Content-Type":e,...t}),qe=class{#t;#e;env={};#s;finalized=!1;error;#o;#r;#a;#d;#l;#c;#i;#u;#p;constructor(e,t){this.#t=e,t&&(this.#r=t.executionCtx,this.env=t.env,this.#c=t.notFoundHandler,this.#p=t.path,this.#u=t.matchResult)}get req(){return this.#e??=new ge(this.#t,this.#p,this.#u),this.#e}get event(){if(this.#r&&"respondWith"in this.#r)return this.#r;throw Error("This context has no FetchEvent")}get executionCtx(){if(this.#r)return this.#r;throw Error("This context has no ExecutionContext")}get res(){return this.#a||=new Response(null,{headers:this.#i??=new Headers})}set res(e){if(this.#a&&e){e=new Response(e.body,e);for(const[t,a]of this.#a.headers.entries())if(t!=="content-type")if(t==="set-cookie"){const s=this.#a.headers.getSetCookie();e.headers.delete("set-cookie");for(const r of s)e.headers.append("set-cookie",r)}else e.headers.set(t,a)}this.#a=e,this.finalized=!0}render=(...e)=>(this.#l??=t=>this.html(t),this.#l(...e));setLayout=e=>this.#d=e;getLayout=()=>this.#d;setRenderer=e=>{this.#l=e};header=(e,t,a)=>{this.finalized&&(this.#a=new Response(this.#a.body,this.#a));const s=this.#a?this.#a.headers:this.#i??=new Headers;t===void 0?s.delete(e):a?.append?s.append(e,t):s.set(e,t)};status=e=>{this.#o=e};set=(e,t)=>{this.#s??=new Map,this.#s.set(e,t)};get=e=>this.#s?this.#s.get(e):void 0;get var(){return this.#s?Object.fromEntries(this.#s):{}}#n(e,t,a){const s=this.#a?new Headers(this.#a.headers):this.#i??new Headers;if(typeof t=="object"&&"headers"in t){const o=t.headers instanceof Headers?t.headers:new Headers(t.headers);for(const[n,i]of o)n.toLowerCase()==="set-cookie"?s.append(n,i):s.set(n,i)}if(a)for(const[o,n]of Object.entries(a))if(typeof n=="string")s.set(o,n);else{s.delete(o);for(const i of n)s.append(o,i)}const r=typeof t=="number"?t:t?.status??this.#o;return new Response(e,{status:r,headers:s})}newResponse=(...e)=>this.#n(...e);body=(e,t,a)=>this.#n(e,t,a);text=(e,t,a)=>!this.#i&&!this.#o&&!t&&!a&&!this.finalized?new Response(e):this.#n(e,t,Y(Fe,a));json=(e,t,a)=>this.#n(JSON.stringify(e),t,Y("application/json",a));html=(e,t,a)=>{const s=r=>this.#n(r,t,Y("text/html; charset=UTF-8",a));return typeof e=="object"?me(e,Be.Stringify,!1,{}).then(s):s(e)};redirect=(e,t)=>{const a=String(e);return this.header("Location",/[^\x00-\xFF]/.test(a)?encodeURI(a):a),this.newResponse(null,t??302)};notFound=()=>(this.#c??=()=>new Response,this.#c(this))},E="ALL",Ue="all",Ge=["get","post","put","delete","options","patch"],fe="Can not add a route since the matcher is already built.",be=class extends Error{},Ke="__COMPOSED_HANDLER",We=e=>e.text("404 Not Found",404),oe=(e,t)=>{if("getResponse"in e){const a=e.getResponse();return t.newResponse(a.body,a)}return console.error(e),t.text("Internal Server Error",500)},ve=class{get;post;put;delete;options;patch;all;on;use;router;getPath;_basePath="/";#t="/";routes=[];constructor(t={}){[...Ge,Ue].forEach(o=>{this[o]=(n,...i)=>(typeof n=="string"?this.#t=n:this.#o(o,this.#t,n),i.forEach(l=>{this.#o(o,this.#t,l)}),this)}),this.on=(o,n,...i)=>{for(const l of[n].flat()){this.#t=l;for(const c of[o].flat())i.map(d=>{this.#o(c.toUpperCase(),this.#t,d)})}return this},this.use=(o,...n)=>(typeof o=="string"?this.#t=o:(this.#t="*",n.unshift(o)),n.forEach(i=>{this.#o(E,this.#t,i)}),this);const{strict:s,...r}=t;Object.assign(this,r),this.getPath=s??!0?t.getPath??de:_e}#e(){const t=new ve({router:this.router,getPath:this.getPath});return t.errorHandler=this.errorHandler,t.#s=this.#s,t.routes=this.routes,t}#s=We;errorHandler=oe;route(t,a){const s=this.basePath(t);return a.routes.map(r=>{let o;a.errorHandler===oe?o=r.handler:(o=async(n,i)=>(await ae([],a.errorHandler)(n,()=>r.handler(n,i))).res,o[Ke]=r.handler),s.#o(r.method,r.path,o)}),this}basePath(t){const a=this.#e();return a._basePath=D(this._basePath,t),a}onError=t=>(this.errorHandler=t,this);notFound=t=>(this.#s=t,this);mount(t,a,s){let r,o;s&&(typeof s=="function"?o=s:(o=s.optionHandler,s.replaceRequest===!1?r=l=>l:r=s.replaceRequest));const n=o?l=>{const c=o(l);return Array.isArray(c)?c:[c]}:l=>{let c;try{c=l.executionCtx}catch{}return[l.env,c]};r||=(()=>{const l=D(this._basePath,t),c=l==="/"?0:l.length;return d=>{const u=new URL(d.url);return u.pathname=u.pathname.slice(c)||"/",new Request(u,d)}})();const i=async(l,c)=>{const d=await a(r(l.req.raw),...n(l));if(d)return d;await c()};return this.#o(E,D(t,"*"),i),this}#o(t,a,s){t=t.toUpperCase(),a=D(this._basePath,a);const r={basePath:this._basePath,path:a,method:t,handler:s};this.router.add(t,a,[s,r]),this.routes.push(r)}#r(t,a){if(t instanceof Error)return this.errorHandler(t,a);throw t}#a(t,a,s,r){if(r==="HEAD")return(async()=>new Response(null,await this.#a(t,a,s,"GET")))();const o=this.getPath(t,{env:s}),n=this.router.match(r,o),i=new qe(t,{path:o,matchResult:n,env:s,executionCtx:a,notFoundHandler:this.#s});if(n[0].length===1){let c;try{c=n[0][0][0][0](i,async()=>{i.res=await this.#s(i)})}catch(d){return this.#r(d,i)}return c instanceof Promise?c.then(d=>d||(i.finalized?i.res:this.#s(i))).catch(d=>this.#r(d,i)):c??this.#s(i)}const l=ae(n[0],this.errorHandler,this.#s);return(async()=>{try{const c=await l(i);if(!c.finalized)throw new Error("Context is not finalized. Did you forget to return a Response object or `await next()`?");return c.res}catch(c){return this.#r(c,i)}})()}fetch=(t,...a)=>this.#a(t,a[1],a[0],t.method);request=(t,a,s,r)=>t instanceof Request?this.fetch(a?new Request(t,a):t,s,r):(t=t.toString(),this.fetch(new Request(/^https?:\/\//.test(t)?t:`http://localhost${D("/",t)}`,a),s,r));fire=()=>{addEventListener("fetch",t=>{t.respondWith(this.#a(t.request,t,void 0,t.request.method))})}},q="[^/]+",_=".*",H="(?:|/.*)",L=Symbol(),Ye=new Set(".\\+*[^]$()");function Xe(e,t){return e.length===1?t.length===1?e<t?-1:1:-1:t.length===1||e===_||e===H?1:t===_||t===H?-1:e===q?1:t===q?-1:e.length===t.length?e<t?-1:1:t.length-e.length}var X=class{#t;#e;#s=Object.create(null);insert(t,a,s,r,o){if(t.length===0){if(this.#t!==void 0)throw L;if(o)return;this.#t=a;return}const[n,...i]=t,l=n==="*"?i.length===0?["","",_]:["","",q]:n==="/*"?["","",H]:n.match(/^\:([^\{\}]+)(?:\{(.+)\})?$/);let c;if(l){const d=l[1];let u=l[2]||q;if(d&&l[2]&&(u===".*"||(u=u.replace(/^\((?!\?:)(?=[^)]+\)$)/,"(?:"),/\((?!\?:)/.test(u))))throw L;if(c=this.#s[u],!c){if(Object.keys(this.#s).some(p=>p!==_&&p!==H))throw L;if(o)return;c=this.#s[u]=new X,d!==""&&(c.#e=r.varIndex++)}!o&&d!==""&&s.push([d,c.#e])}else if(c=this.#s[n],!c){if(Object.keys(this.#s).some(d=>d.length>1&&d!==_&&d!==H))throw L;if(o)return;c=this.#s[n]=new X}c.insert(i,a,s,r,o)}buildRegExpStr(){const a=Object.keys(this.#s).sort(Xe).map(s=>{const r=this.#s[s];return(typeof r.#e=="number"?`(${s})@${r.#e}`:Ye.has(s)?`\\${s}`:s)+r.buildRegExpStr()});return typeof this.#t=="number"&&a.unshift(`#${this.#t}`),a.length===0?"":a.length===1?a[0]:"(?:"+a.join("|")+")"}},Je=class{#t={varIndex:0};#e=new X;insert(e,t,a){const s=[],r=[];for(let n=0;;){let i=!1;if(e=e.replace(/\{[^}]+\}/g,l=>{const c=`@\\${n}`;return r[n]=[c,l],n++,i=!0,c}),!i)break}const o=e.match(/(?::[^\/]+)|(?:\/\*$)|./g)||[];for(let n=r.length-1;n>=0;n--){const[i]=r[n];for(let l=o.length-1;l>=0;l--)if(o[l].indexOf(i)!==-1){o[l]=o[l].replace(i,r[n][1]);break}}return this.#e.insert(o,t,s,this.#t,a),s}buildRegExp(){let e=this.#e.buildRegExpStr();if(e==="")return[/^$/,[],[]];let t=0;const a=[],s=[];return e=e.replace(/#(\d+)|@(\d+)|\.\*\$/g,(r,o,n)=>o!==void 0?(a[++t]=Number(o),"$()"):(n!==void 0&&(s[Number(n)]=++t),"")),[new RegExp(`^${e}`),a,s]}},xe=[],Qe=[/^$/,[],Object.create(null)],ye=Object.create(null);function we(e){return ye[e]??=new RegExp(e==="*"?"":`^${e.replace(/\/\*$|([.\\+*[^\]$()])/g,(t,a)=>a?`\\${a}`:"(?:|/.*)")}$`)}function Ze(){ye=Object.create(null)}function et(e){const t=new Je,a=[];if(e.length===0)return Qe;const s=e.map(c=>[!/\*|\/:/.test(c[0]),...c]).sort(([c,d],[u,p])=>c?1:u?-1:d.length-p.length),r=Object.create(null);for(let c=0,d=-1,u=s.length;c<u;c++){const[p,f,h]=s[c];p?r[f]=[h.map(([b])=>[b,Object.create(null)]),xe]:d++;let g;try{g=t.insert(f,d,p)}catch(b){throw b===L?new be(f):b}p||(a[d]=h.map(([b,m])=>{const v=Object.create(null);for(m-=1;m>=0;m--){const[x,O]=g[m];v[x]=O}return[b,v]}))}const[o,n,i]=t.buildRegExp();for(let c=0,d=a.length;c<d;c++)for(let u=0,p=a[c].length;u<p;u++){const f=a[c][u]?.[1];if(!f)continue;const h=Object.keys(f);for(let g=0,b=h.length;g<b;g++)f[h[g]]=i[f[h[g]]]}const l=[];for(const c in n)l[c]=a[n[c]];return[o,l,r]}function M(e,t){if(e){for(const a of Object.keys(e).sort((s,r)=>r.length-s.length))if(we(a).test(t))return[...e[a]]}}var tt=class{name="RegExpRouter";#t;#e;constructor(){this.#t={[E]:Object.create(null)},this.#e={[E]:Object.create(null)}}add(e,t,a){const s=this.#t,r=this.#e;if(!s||!r)throw new Error(fe);s[e]||[s,r].forEach(i=>{i[e]=Object.create(null),Object.keys(i[E]).forEach(l=>{i[e][l]=[...i[E][l]]})}),t==="/*"&&(t="*");const o=(t.match(/\/:/g)||[]).length;if(/\*$/.test(t)){const i=we(t);e===E?Object.keys(s).forEach(l=>{s[l][t]||=M(s[l],t)||M(s[E],t)||[]}):s[e][t]||=M(s[e],t)||M(s[E],t)||[],Object.keys(s).forEach(l=>{(e===E||e===l)&&Object.keys(s[l]).forEach(c=>{i.test(c)&&s[l][c].push([a,o])})}),Object.keys(r).forEach(l=>{(e===E||e===l)&&Object.keys(r[l]).forEach(c=>i.test(c)&&r[l][c].push([a,o]))});return}const n=ue(t)||[t];for(let i=0,l=n.length;i<l;i++){const c=n[i];Object.keys(r).forEach(d=>{(e===E||e===d)&&(r[d][c]||=[...M(s[d],c)||M(s[E],c)||[]],r[d][c].push([a,o-l+i+1]))})}}match(e,t){Ze();const a=this.#s();return this.match=(s,r)=>{const o=a[s]||a[E],n=o[2][r];if(n)return n;const i=r.match(o[0]);if(!i)return[[],xe];const l=i.indexOf("",1);return[o[1][l],i]},this.match(e,t)}#s(){const e=Object.create(null);return Object.keys(this.#e).concat(Object.keys(this.#t)).forEach(t=>{e[t]||=this.#o(t)}),this.#t=this.#e=void 0,e}#o(e){const t=[];let a=e===E;return[this.#t,this.#e].forEach(s=>{const r=s[e]?Object.keys(s[e]).map(o=>[o,s[e][o]]):[];r.length!==0?(a||=!0,t.push(...r)):e!==E&&t.push(...Object.keys(s[E]).map(o=>[o,s[E][o]]))}),a?et(t):null}},st=class{name="SmartRouter";#t=[];#e=[];constructor(e){this.#t=e.routers}add(e,t,a){if(!this.#e)throw new Error(fe);this.#e.push([e,t,a])}match(e,t){if(!this.#e)throw new Error("Fatal error");const a=this.#t,s=this.#e,r=a.length;let o=0,n;for(;o<r;o++){const i=a[o];try{for(let l=0,c=s.length;l<c;l++)i.add(...s[l]);n=i.match(e,t)}catch(l){if(l instanceof be)continue;throw l}this.match=i.match.bind(i),this.#t=[i],this.#e=void 0;break}if(o===r)throw new Error("Fatal error");return this.name=`SmartRouter + ${this.activeRouter.name}`,n}get activeRouter(){if(this.#e||this.#t.length!==1)throw new Error("No active router has been determined yet.");return this.#t[0]}},N=Object.create(null),Ee=class{#t;#e;#s;#o=0;#r=N;constructor(e,t,a){if(this.#e=a||Object.create(null),this.#t=[],e&&t){const s=Object.create(null);s[e]={handler:t,possibleKeys:[],score:0},this.#t=[s]}this.#s=[]}insert(e,t,a){this.#o=++this.#o;let s=this;const r=Me(t),o=[];for(let n=0,i=r.length;n<i;n++){const l=r[n],c=r[n+1],d=Ne(l,c),u=Array.isArray(d)?d[0]:l;if(u in s.#e){s=s.#e[u],d&&o.push(d[1]);continue}s.#e[u]=new Ee,d&&(s.#s.push(d),o.push(d[1])),s=s.#e[u]}return s.#t.push({[e]:{handler:a,possibleKeys:o.filter((n,i,l)=>l.indexOf(n)===i),score:this.#o}}),s}#a(e,t,a,s){const r=[];for(let o=0,n=e.#t.length;o<n;o++){const i=e.#t[o],l=i[t]||i[E],c={};if(l!==void 0&&(l.params=Object.create(null),r.push(l),a!==N||s&&s!==N))for(let d=0,u=l.possibleKeys.length;d<u;d++){const p=l.possibleKeys[d],f=c[l.score];l.params[p]=s?.[p]&&!f?s[p]:a[p]??s?.[p],c[l.score]=!0}}return r}search(e,t){const a=[];this.#r=N;let r=[this];const o=ce(t),n=[];for(let i=0,l=o.length;i<l;i++){const c=o[i],d=i===l-1,u=[];for(let p=0,f=r.length;p<f;p++){const h=r[p],g=h.#e[c];g&&(g.#r=h.#r,d?(g.#e["*"]&&a.push(...this.#a(g.#e["*"],e,h.#r)),a.push(...this.#a(g,e,h.#r))):u.push(g));for(let b=0,m=h.#s.length;b<m;b++){const v=h.#s[b],x=h.#r===N?{}:{...h.#r};if(v==="*"){const T=h.#e["*"];T&&(a.push(...this.#a(T,e,h.#r)),T.#r=x,u.push(T));continue}const[O,w,C]=v;if(!c&&!(C instanceof RegExp))continue;const y=h.#e[O],S=o.slice(i).join("/");if(C instanceof RegExp){const T=C.exec(S);if(T){if(x[w]=T[0],a.push(...this.#a(y,e,h.#r,x)),Object.keys(y.#e).length){y.#r=x;const j=T[0].match(/\//)?.length??0;(n[j]||=[]).push(y)}continue}}(C===!0||C.test(c))&&(x[w]=c,d?(a.push(...this.#a(y,e,x,h.#r)),y.#e["*"]&&a.push(...this.#a(y.#e["*"],e,x,h.#r))):(y.#r=x,u.push(y)))}}r=u.concat(n.shift()??[])}return a.length>1&&a.sort((i,l)=>i.score-l.score),[a.map(({handler:i,params:l})=>[i,l])]}},at=class{name="TrieRouter";#t;constructor(){this.#t=new Ee}add(e,t,a){const s=ue(t);if(s){for(let r=0,o=s.length;r<o;r++)this.#t.insert(e,s[r],a);return}this.#t.insert(e,t,a)}match(e,t){return this.#t.search(e,t)}},Te=class extends ve{constructor(e={}){super(e),this.router=e.router??new st({routers:[new tt,new at]})}},rt=e=>{const a={...{origin:"*",allowMethods:["GET","HEAD","PUT","POST","DELETE","PATCH"],allowHeaders:[],exposeHeaders:[]},...e},s=(o=>typeof o=="string"?o==="*"?()=>o:n=>o===n?n:null:typeof o=="function"?o:n=>o.includes(n)?n:null)(a.origin),r=(o=>typeof o=="function"?o:Array.isArray(o)?()=>o:()=>[])(a.allowMethods);return async function(n,i){function l(d,u){n.res.headers.set(d,u)}const c=s(n.req.header("origin")||"",n);if(c&&l("Access-Control-Allow-Origin",c),a.origin!=="*"){const d=n.req.header("Vary");d?l("Vary",d):l("Vary","Origin")}if(a.credentials&&l("Access-Control-Allow-Credentials","true"),a.exposeHeaders?.length&&l("Access-Control-Expose-Headers",a.exposeHeaders.join(",")),n.req.method==="OPTIONS"){a.maxAge!=null&&l("Access-Control-Max-Age",a.maxAge.toString());const d=r(n.req.header("origin")||"",n);d.length&&l("Access-Control-Allow-Methods",d.join(","));let u=a.allowHeaders;if(!u?.length){const p=n.req.header("Access-Control-Request-Headers");p&&(u=p.split(/\s*,\s*/))}return u?.length&&(l("Access-Control-Allow-Headers",u.join(",")),n.res.headers.append("Vary","Access-Control-Request-Headers")),n.res.headers.delete("Content-Length"),n.res.headers.delete("Content-Type"),new Response(null,{headers:n.res.headers,status:204,statusText:"No Content"})}await i()}},ot=/^\s*(?:text\/(?!event-stream(?:[;\s]|$))[^;\s]+|application\/(?:javascript|json|xml|xml-dtd|ecmascript|dart|postscript|rtf|tar|toml|vnd\.dart|vnd\.ms-fontobject|vnd\.ms-opentype|wasm|x-httpd-php|x-javascript|x-ns-proxy-autoconfig|x-sh|x-tar|x-virtualbox-hdd|x-virtualbox-ova|x-virtualbox-ovf|x-virtualbox-vbox|x-virtualbox-vdi|x-virtualbox-vhd|x-virtualbox-vmdk|x-www-form-urlencoded)|font\/(?:otf|ttf)|image\/(?:bmp|vnd\.adobe\.photoshop|vnd\.microsoft\.icon|vnd\.ms-dds|x-icon|x-ms-bmp)|message\/rfc822|model\/gltf-binary|x-shader\/x-fragment|x-shader\/x-vertex|[^;\s]+?\+(?:json|text|xml|yaml))(?:[;\s]|$)/i,ne=(e,t=it)=>{const a=/\.([a-zA-Z0-9]+?)$/,s=e.match(a);if(!s)return;let r=t[s[1]];return r&&r.startsWith("text")&&(r+="; charset=utf-8"),r},nt={aac:"audio/aac",avi:"video/x-msvideo",avif:"image/avif",av1:"video/av1",bin:"application/octet-stream",bmp:"image/bmp",css:"text/css",csv:"text/csv",eot:"application/vnd.ms-fontobject",epub:"application/epub+zip",gif:"image/gif",gz:"application/gzip",htm:"text/html",html:"text/html",ico:"image/x-icon",ics:"text/calendar",jpeg:"image/jpeg",jpg:"image/jpeg",js:"text/javascript",json:"application/json",jsonld:"application/ld+json",map:"application/json",mid:"audio/x-midi",midi:"audio/x-midi",mjs:"text/javascript",mp3:"audio/mpeg",mp4:"video/mp4",mpeg:"video/mpeg",oga:"audio/ogg",ogv:"video/ogg",ogx:"application/ogg",opus:"audio/opus",otf:"font/otf",pdf:"application/pdf",png:"image/png",rtf:"application/rtf",svg:"image/svg+xml",tif:"image/tiff",tiff:"image/tiff",ts:"video/mp2t",ttf:"font/ttf",txt:"text/plain",wasm:"application/wasm",webm:"video/webm",weba:"audio/webm",webmanifest:"application/manifest+json",webp:"image/webp",woff:"font/woff",woff2:"font/woff2",xhtml:"application/xhtml+xml",xml:"application/xml",zip:"application/zip","3gp":"video/3gpp","3g2":"video/3gpp2",gltf:"model/gltf+json",glb:"model/gltf-binary"},it=nt,lt=(...e)=>{let t=e.filter(r=>r!=="").join("/");t=t.replace(/(?<=\/)\/+/g,"");const a=t.split("/"),s=[];for(const r of a)r===".."&&s.length>0&&s.at(-1)!==".."?s.pop():r!=="."&&s.push(r);return s.join("/")||"."},Pe={br:".br",zstd:".zst",gzip:".gz"},ct=Object.keys(Pe),dt="index.html",ut=e=>{const t=e.root??"./",a=e.path,s=e.join??lt;return async(r,o)=>{if(r.finalized)return o();let n;if(e.path)n=e.path;else try{if(n=decodeURIComponent(r.req.path),/(?:^|[\/\\])\.\.(?:$|[\/\\])/.test(n))throw new Error}catch{return await e.onNotFound?.(r.req.path,r),o()}let i=s(t,!a&&e.rewriteRequestPath?e.rewriteRequestPath(n):n);e.isDir&&await e.isDir(i)&&(i=s(i,dt));const l=e.getContent;let c=await l(i,r);if(c instanceof Response)return r.newResponse(c.body,c);if(c){const d=e.mimes&&ne(i,e.mimes)||ne(i);if(r.header("Content-Type",d||"application/octet-stream"),e.precompressed&&(!d||ot.test(d))){const u=new Set(r.req.header("Accept-Encoding")?.split(",").map(p=>p.trim()));for(const p of ct){if(!u.has(p))continue;const f=await l(i+Pe[p],r);if(f){c=f,r.header("Content-Encoding",p),r.header("Vary","Accept-Encoding",{append:!0});break}}}return await e.onFound?.(i,r),r.body(c)}await e.onNotFound?.(i,r),await o()}},pt=async(e,t)=>{let a;t&&t.manifest?typeof t.manifest=="string"?a=JSON.parse(t.manifest):a=t.manifest:typeof __STATIC_CONTENT_MANIFEST=="string"?a=JSON.parse(__STATIC_CONTENT_MANIFEST):a=__STATIC_CONTENT_MANIFEST;let s;t&&t.namespace?s=t.namespace:s=__STATIC_CONTENT;const r=a[e]||e;if(!r)return null;const o=await s.get(r,{type:"stream"});return o||null},ht=e=>async function(a,s){return ut({...e,getContent:async o=>pt(o,{manifest:e.manifest,namespace:e.namespace?e.namespace:a.env?a.env.__STATIC_CONTENT:void 0})})(a,s)},gt=e=>ht(e);const P=new Te;P.use("/api/*",rt());P.use("/static/*",gt({root:"./public"}));const F=new Map,z=new Map,U=new Map;function k(e,t){const s={...U.get(e)||{operationId:e,analyzed:0,updated:0,failed:0,unchanged:0,total:0,startTime:Date.now(),lastUpdate:Date.now(),status:"starting",type:"unknown",details:[]},...t,lastUpdate:Date.now()};return U.set(e,s),console.log(`📊 Progress Update [${e}]:`,s),s}const ie={products:{limit:500,windowMs:6e4},collections:{limit:300,windowMs:6e4},bulkUpdate:{limit:1e3,windowMs:6e4},bulkVariants:{limit:800,windowMs:6e4},analyzeVariants:{limit:200,windowMs:6e4},concurrent:{maxChunks:20,chunkSize:25,chunkDelay:50}};function Q(e,t){return`${e}:${JSON.stringify(t)}`}function Z(e,t=3e5){const a=z.get(e);return a&&Date.now()-a.timestamp<t?(console.log(`⚡ CACHE HIT: ${e}`),a.data):null}function ee(e,t){if(z.set(e,{data:t,timestamp:Date.now()}),z.size>1e3){const a=z.keys().next().value;z.delete(a)}}function G(e,t){const a=t?ie[t]||ie.products:{limit:100,windowMs:6e4},s=Date.now(),r=s-a.windowMs;F.has(e)||F.set(e,[]);const n=F.get(e).filter(i=>i>r);return n.length>=a.limit?!1:(n.push(s),F.set(e,n),!0)}function Ae(e){return new Promise(t=>setTimeout(t,e))}async function mt(e,t=3,a=1e3){for(let s=1;s<=t;s++)try{return await e()}catch(r){if(s===t)throw r;const o=a*Math.pow(2,s-1);console.log(`🔄 Retry ${s}/${t} in ${o}ms...`),await Ae(o)}throw new Error("Max retries exceeded")}async function V(e,t,a,s="GET",r,o=3e4){const n=`https://${e}.myshopify.com/admin/api/2024-01/${a}`,l={method:s,headers:{"X-Shopify-Access-Token":t,"Content-Type":"application/json"},signal:AbortSignal.timeout(o)};return r&&(s==="POST"||s==="PUT")&&(l.body=JSON.stringify(r)),await mt(async()=>{const c=await fetch(n,l);if(c.status===429){const u=c.headers.get("Retry-After")||"2",p=parseInt(u)*1e3;throw console.log(`⏳ Rate limited by Shopify, waiting ${p}ms...`),await Ae(p),new Error("Rate limited, retrying...")}if(!c.ok){const u=await c.text();throw new Error(`Shopify API error: ${c.status} - ${u}`)}return await c.json()},3,1e3)}function te(e){if(!e)return"";const t=e.split(",");for(const a of t)if(a.includes('rel="next"')){const s=a.split(";")[0].trim();if(s.startsWith("<")&&s.endsWith(">"))return s.slice(1,-1)}return""}async function I(e,t,a){const s=Q("products",{shop:e,forceLimit:a}),r=Z(s,18e4);if(r)return console.log(`⚡ PRODUCTS CACHE HIT - INSTANT LOAD: ${r.length} products`),r;let o=[],i=`https://${e}.myshopify.com/admin/api/2024-01/products.json?limit=250&fields=id,title,vendor,product_type,status,variants,options,image`;console.log("⚡ ULTRA-FAST PRODUCT LOADING - MINIMAL FIELDS ONLY");const l=Date.now();let c=0;for(;i&&c<20;){c++,console.log(`⚡ Speed loading page ${c}...`);try{const u={method:"GET",headers:{"X-Shopify-Access-Token":t,"Content-Type":"application/json"},signal:AbortSignal.timeout(1e4)},p=await fetch(i,u);if(!p.ok){console.error(`❌ Page ${c} failed: ${p.status}`);break}const h=(await p.json()).products||[];if(h.length===0){console.log(`✅ No more products at page ${c}`);break}o.push(...h),console.log(`⚡ Page ${c}: +${h.length} products (Total: ${o.length})`);const g=p.headers.get("Link")||"";if(i=te(g),a&&o.length>=a){console.log(`⚡ SPEED LIMIT REACHED: ${a} products`),o=o.slice(0,a);break}}catch(u){console.error(`❌ Page ${c} error:`,u);break}}const d=Date.now()-l;return console.log(`⚡ ULTRA-FAST LOAD COMPLETE: ${o.length} products in ${d}ms`),ee(s,o),o}async function Ce(e,t){const a=Q("collections",{shop:e}),s=Z(a,3e5);if(s)return console.log(`⚡ COLLECTIONS CACHE HIT - INSTANT LOAD: ${s.length} collections`),s;const r="id,title,handle",o=["custom_collections","smart_collections"];console.log("⚡ ULTRA-FAST COLLECTIONS LOADING - PARALLEL PROCESSING");const n=Date.now(),i=o.map(async u=>{const p=[];let f=`https://${e}.myshopify.com/admin/api/2024-01/${u}.json?limit=250&fields=${r}`,h=0;for(;f&&h<10;){h++;try{const g=await fetch(f,{method:"GET",headers:{"X-Shopify-Access-Token":t,"Content-Type":"application/json"},signal:AbortSignal.timeout(8e3)});if(!g.ok)break;const m=(await g.json())[u]||[];if(m.length===0)break;p.push(...m),console.log(`⚡ ${u} page ${h}: +${m.length}`);const v=g.headers.get("Link")||"";f=te(v)}catch(g){console.error(`❌ ${u} error:`,g);break}}return p}),l=await Promise.allSettled(i);let c=[];l.forEach((u,p)=>{u.status==="fulfilled"&&(c.push(...u.value),console.log(`⚡ ${o[p]}: ${u.value.length} collections`))});const d=Date.now()-n;return console.log(`⚡ ULTRA-FAST COLLECTIONS COMPLETE: ${c.length} collections in ${d}ms`),ee(a,c),c}async function ft(e,t,a){let s=[],r=`https://${e}.myshopify.com/admin/api/2024-01/collections/${a}/products.json?limit=250&fields=id`;for(;r;)try{const o=await fetch(r,{method:"GET",headers:{"X-Shopify-Access-Token":t,"Content-Type":"application/json"}});if(!o.ok)break;const i=(await o.json()).products||[];s=s.concat(i);const l=o.headers.get("Link")||"";r=te(l)}catch(o){console.log(`❌ Error in collection ${a} pagination:`,o);break}return s}async function bt(e,t,a){const s={};console.log("🔍 MAPEANDO PRODUTOS POR COLEÇÃO COM PAGINAÇÃO COMPLETA...");for(const r of a)try{console.log(`🔍 Buscando produtos da coleção "${r.title}"...`);const o=await ft(e,t,r.id);o.forEach(n=>{s[n.id]||(s[n.id]=[]),s[n.id].push(r.id.toString())}),console.log(`✅ Coleção "${r.title}": ${o.length} produtos (com paginação completa)`)}catch(o){console.log(`❌ Erro na coleção ${r.title}:`,o)}return console.log(`✅ Mapeamento completo: ${Object.keys(s).length} produtos mapeados`),s}async function vt(e,t,a,s){const r=[];for(let o=0;o<a.length;o++){const n=a[o];try{const i={id:n.id};s.title&&s.title!==n.title&&(i.title=s.title),s.description!==void 0&&s.description!==n.body_html&&(i.body_html=s.description),s.vendor&&s.vendor!==n.vendor&&(i.vendor=s.vendor),s.productType&&s.productType!==n.product_type&&(i.product_type=s.productType),s.tags!==void 0&&(i.tags=s.tags),s.status&&s.status!==n.status&&(i.status=s.status),(s.seoTitle||s.seoDescription)&&(i.metafields_global_title_tag=s.seoTitle||n.metafields_global_title_tag,i.metafields_global_description_tag=s.seoDescription||n.metafields_global_description_tag),(s.price||s.comparePrice)&&(i.variants=n.variants.map(c=>({id:c.id,price:s.price||c.price,compare_at_price:s.comparePrice||c.compare_at_price}))),s.inventory!==void 0&&(i.variants=n.variants.map(c=>({id:c.id,inventory_quantity:s.inventory})));const l=await V(e,t,`products/${n.id}.json`,"PUT",{product:i});r.push({id:n.id,success:!0,data:l.product}),o<a.length-1&&await new Promise(c=>setTimeout(c,200))}catch(i){r.push({id:n.id,success:!1,error:i instanceof Error?i.message:"Unknown error"})}}return r}P.post("/api/test-connection",async e=>{try{const{shop:t,accessToken:a}=await e.req.json();if(!t||!a)return e.json({error:"Parâmetros obrigatórios: shop e accessToken"},400);const s=await V(t,a,"shop.json");return e.json({success:!0,shop:s.shop.name,domain:s.shop.domain,plan:s.shop.plan_name})}catch(t){return e.json({error:"Falha na conexão: "+(t instanceof Error?t.message:"Erro desconhecido")},401)}});P.get("/favicon.ico",e=>e.text("",204));P.get("/test-modal-diagnostico",e=>e.html(`<!DOCTYPE html>
+import { Hono } from 'hono'
+import { cors } from 'hono/cors'
+import { serveStatic } from 'hono/cloudflare-workers'
+
+const app = new Hono()
+
+// Enable CORS for all API routes
+app.use('/api/*', cors())
+
+// Serve static files
+app.use('/static/*', serveStatic({ root: './public' }))
+
+// ULTRA-FAST Rate limiting and caching system
+const rateLimitMap = new Map()
+const processLocks = new Map()
+const ultraCache = new Map() // Ultra-fast cache system
+
+// REAL-TIME PROGRESS TRACKING SYSTEM
+const activeOperations = new Map() // Store active operations and their progress
+
+// Progress tracking structure
+interface ProgressData {
+  operationId: string
+  type: string // 'bulk-update', 'variant-titles', 'variant-values'
+  status: string
+  analyzed: number
+  updated: number
+  failed: number
+  unchanged: number
+  total: number
+  startTime: number
+  lastUpdate: number
+  details: string[]
+}
+
+// Create or update operation progress
+function updateOperationProgress(operationId: string, progressData: Partial<ProgressData>) {
+  const existing = activeOperations.get(operationId) || {
+    operationId,
+    analyzed: 0,
+    updated: 0,
+    failed: 0,
+    unchanged: 0,
+    total: 0,
+    startTime: Date.now(),
+    lastUpdate: Date.now(),
+    status: 'starting',
+    type: 'unknown',
+    details: []
+  }
+  
+  const updated = {
+    ...existing,
+    ...progressData,
+    lastUpdate: Date.now()
+  }
+  
+  activeOperations.set(operationId, updated)
+  console.log(`📊 Progress Update [${operationId}]:`, updated)
+  return updated
+}
+
+// SPEED-OPTIMIZED rate limiting for lightning-fast operations
+const RATE_LIMITS = {
+  // ULTRA-FAST API calls - More aggressive limits for speed
+  products: { limit: 500, windowMs: 60000 },     // 500 req/min - MUCH FASTER
+  collections: { limit: 300, windowMs: 60000 },   // 300 req/min - 3x FASTER
+  
+  // Mass operations - HYPER-OPTIMIZED for maximum speed
+  bulkUpdate: { limit: 1000, windowMs: 60000 },    // 1000 req/min - LIGHTNING FAST
+  bulkVariants: { limit: 800, windowMs: 60000 },   // 800 req/min - ULTRA FAST
+  analyzeVariants: { limit: 200, windowMs: 60000 }, // 200 req/min - 4x FASTER
+  
+  // Concurrent processing limits - MAXIMUM PARALLELISM
+  concurrent: {
+    maxChunks: 20,      // Max 20 chunks in parallel - DOUBLED
+    chunkSize: 25,      // 25 products per chunk - SMALLER FOR SPEED
+    chunkDelay: 50      // 50ms delay - 4x FASTER
+  }
+}
+
+// ULTRA-FAST Cache system with intelligent expiration
+function getCacheKey(endpoint, params) {
+  return `${endpoint}:${JSON.stringify(params)}`
+}
+
+function getCached(key, maxAgeMs = 300000) { // 5 min default cache
+  const cached = ultraCache.get(key)
+  if (cached && (Date.now() - cached.timestamp) < maxAgeMs) {
+    console.log(`⚡ CACHE HIT: ${key}`)
+    return cached.data
+  }
+  return null
+}
+
+function setCache(key, data) {
+  ultraCache.set(key, {
+    data: data,
+    timestamp: Date.now()
+  })
+  // Keep cache clean - remove old entries
+  if (ultraCache.size > 1000) {
+    const oldestKey = ultraCache.keys().next().value
+    ultraCache.delete(oldestKey)
+  }
+}
+
+function rateLimit(key: string, operationType?: string): boolean {
+  const config = operationType ? RATE_LIMITS[operationType] || RATE_LIMITS.products : { limit: 100, windowMs: 60000 }
+  const now = Date.now()
+  const windowStart = now - config.windowMs
+  
+  if (!rateLimitMap.has(key)) {
+    rateLimitMap.set(key, [])
+  }
+  
+  const requests = rateLimitMap.get(key)
+  const recentRequests = requests.filter((time: number) => time > windowStart)
+  
+  if (recentRequests.length >= config.limit) {
+    return false
+  }
+  
+  recentRequests.push(now)
+  rateLimitMap.set(key, recentRequests)
+  return true
+}
+
+// Mass processing helper - chunks array into smaller pieces
+function chunkArray<T>(array: T[], chunkSize: number): T[][] {
+  const chunks: T[][] = []
+  for (let i = 0; i < array.length; i += chunkSize) {
+    chunks.push(array.slice(i, i + chunkSize))
+  }
+  return chunks
+}
+
+// Delay helper for rate limiting
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+// Enhanced retry logic with exponential backoff
+async function retryOperation<T>(operation: () => Promise<T>, maxRetries: number = 3, baseDelay: number = 1000): Promise<T> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation()
+    } catch (error) {
+      if (attempt === maxRetries) {
+        throw error
+      }
+      
+      // Exponential backoff: 1s, 2s, 4s
+      const delayTime = baseDelay * Math.pow(2, attempt - 1)
+      console.log(`🔄 Retry ${attempt}/${maxRetries} in ${delayTime}ms...`)
+      await delay(delayTime)
+    }
+  }
+  throw new Error('Max retries exceeded')
+}
+
+// Shopify API helper functions
+// Enhanced Shopify API helper with timeout and retry logic
+async function shopifyRequest(shop: string, accessToken: string, endpoint: string, method: string = 'GET', body?: any, timeout: number = 30000) {
+  const url = `https://${shop}.myshopify.com/admin/api/2024-01/${endpoint}`
+  
+  const headers: any = {
+    'X-Shopify-Access-Token': accessToken,
+    'Content-Type': 'application/json',
+  }
+  
+  const options: any = {
+    method,
+    headers,
+    signal: AbortSignal.timeout(timeout) // 30s timeout by default
+  }
+  
+  if (body && (method === 'POST' || method === 'PUT')) {
+    options.body = JSON.stringify(body)
+  }
+
+  return await retryOperation(async () => {
+    const response = await fetch(url, options)
+    
+    // Handle rate limiting from Shopify
+    if (response.status === 429) {
+      const retryAfter = response.headers.get('Retry-After') || '2'
+      const waitTime = parseInt(retryAfter) * 1000
+      console.log(`⏳ Rate limited by Shopify, waiting ${waitTime}ms...`)
+      await delay(waitTime)
+      throw new Error('Rate limited, retrying...')
+    }
+    
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`Shopify API error: ${response.status} - ${errorText}`)
+    }
+    
+    const data = await response.json()
+    return data
+  }, 3, 1000)
+}
+
+// Helper function to extract next page URL from Link header (SAME AS YOUR PYTHON SCRIPT)
+function getNextPageUrl(linkHeader: string): string {
+  if (!linkHeader) {
+    return ""
+  }
+  
+  const links = linkHeader.split(',')
+  for (const link of links) {
+    if (link.includes('rel="next"')) {
+      const urlMatch = link.split(';')[0].trim()
+      if (urlMatch.startsWith('<') && urlMatch.endsWith('>')) {
+        return urlMatch.slice(1, -1) // Remove < and >
+      }
+    }
+  }
+  
+  return ""
+}
+
+// ULTRA-FAST product loading with intelligent caching and minimal fields
+async function getAllProducts(shop: string, accessToken: string, forceLimit?: number) {
+  const cacheKey = getCacheKey('products', { shop, forceLimit })
+  
+  // SPEED: Check cache first - return immediately if found
+  const cached = getCached(cacheKey, 180000) // 3 min cache for products
+  if (cached) {
+    console.log(`⚡ PRODUCTS CACHE HIT - INSTANT LOAD: ${cached.length} products`)
+    return cached
+  }
+  
+  let allProducts: any[] = []
+  // SPEED: Only essential fields to minimize transfer time
+  const minimalFields = 'id,title,vendor,product_type,status,variants,options,image'
+  let url = `https://${shop}.myshopify.com/admin/api/2024-01/products.json?limit=250&fields=${minimalFields}`
+  
+  console.log(`⚡ ULTRA-FAST PRODUCT LOADING - MINIMAL FIELDS ONLY`)
+  
+  const startTime = Date.now()
+  let pageCount = 0
+  
+  while (url && pageCount < 20) { // SPEED: Limit pages to prevent infinite loops
+    pageCount++
+    console.log(`⚡ Speed loading page ${pageCount}...`)
+    
+    try {
+      const options: any = {
+        method: 'GET',
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json',
+        },
+        // SPEED: Add timeout to prevent hanging
+        signal: AbortSignal.timeout(10000) // 10s max per request
+      }
+      
+      const response = await fetch(url, options)
+      
+      if (!response.ok) {
+        console.error(`❌ Page ${pageCount} failed: ${response.status}`)
+        break
+      }
+      
+      const data = await response.json()
+      const products = data.products || []
+      
+      if (products.length === 0) {
+        console.log(`✅ No more products at page ${pageCount}`)
+        break
+      }
+      
+      // SPEED: Add products immediately
+      allProducts.push(...products)
+      console.log(`⚡ Page ${pageCount}: +${products.length} products (Total: ${allProducts.length})`)
+      
+      // SPEED: Get next page URL
+      const linkHeader = response.headers.get('Link') || ''
+      url = getNextPageUrl(linkHeader)
+      
+      // SPEED: Force limit if specified for testing
+      if (forceLimit && allProducts.length >= forceLimit) {
+        console.log(`⚡ SPEED LIMIT REACHED: ${forceLimit} products`)
+        allProducts = allProducts.slice(0, forceLimit)
+        break
+      }
+      
+    } catch (error) {
+      console.error(`❌ Page ${pageCount} error:`, error)
+      break
+    }
+  }
+  
+  const loadTime = Date.now() - startTime
+  console.log(`⚡ ULTRA-FAST LOAD COMPLETE: ${allProducts.length} products in ${loadTime}ms`)
+  
+  // SPEED: Cache result for future requests
+  setCache(cacheKey, allProducts)
+  
+  return allProducts
+}
+
+// ULTRA-FAST collections loading with parallel processing and caching
+async function getAllCollections(shop: string, accessToken: string) {
+  const cacheKey = getCacheKey('collections', { shop })
+  
+  // SPEED: Check cache first - instant return if found  
+  const cached = getCached(cacheKey, 300000) // 5 min cache for collections
+  if (cached) {
+    console.log(`⚡ COLLECTIONS CACHE HIT - INSTANT LOAD: ${cached.length} collections`)
+    return cached
+  }
+  
+  // SPEED: Minimal fields for collections
+  const fields = 'id,title,handle'
+  const collectionTypes = ['custom_collections', 'smart_collections']
+  
+  console.log(`⚡ ULTRA-FAST COLLECTIONS LOADING - PARALLEL PROCESSING`)
+  
+  const startTime = Date.now()
+  
+  // SPEED: Process both collection types in parallel
+  const collectionPromises = collectionTypes.map(async (collectionType) => {
+    const typeCollections: any[] = []
+    let url = `https://${shop}.myshopify.com/admin/api/2024-01/${collectionType}.json?limit=250&fields=${fields}`
+    let pageCount = 0
+    
+    while (url && pageCount < 10) { // SPEED: Limit pages
+      pageCount++
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'X-Shopify-Access-Token': accessToken,
+            'Content-Type': 'application/json',
+          },
+          signal: AbortSignal.timeout(8000) // 8s timeout
+        })
+        
+        if (!response.ok) break
+        
+        const data = await response.json()
+        const collections = data[collectionType] || []
+        
+        if (collections.length === 0) break
+        
+        typeCollections.push(...collections)
+        console.log(`⚡ ${collectionType} page ${pageCount}: +${collections.length}`)
+        
+        const linkHeader = response.headers.get('Link') || ''
+        url = getNextPageUrl(linkHeader)
+        
+      } catch (error) {
+        console.error(`❌ ${collectionType} error:`, error)
+        break
+      }
+    }
+    
+    return typeCollections
+  })
+  
+  // SPEED: Wait for all collection types to complete in parallel
+  const results = await Promise.allSettled(collectionPromises)
+  
+  let allCollections: any[] = []
+  results.forEach((result, index) => {
+    if (result.status === 'fulfilled') {
+      allCollections.push(...result.value)
+      console.log(`⚡ ${collectionTypes[index]}: ${result.value.length} collections`)
+    }
+  })
+  
+  const loadTime = Date.now() - startTime
+  console.log(`⚡ ULTRA-FAST COLLECTIONS COMPLETE: ${allCollections.length} collections in ${loadTime}ms`)
+  
+  // SPEED: Cache result
+  setCache(cacheKey, allCollections)
+  
+  return allCollections
+}
+
+// Function to get ALL products for a specific collection using Link header pagination
+async function getAllProductsFromCollection(shop: string, accessToken: string, collectionId: string) {
+  let allProducts: any[] = []
+  let url = `https://${shop}.myshopify.com/admin/api/2024-01/collections/${collectionId}/products.json?limit=250&fields=id`
+  
+  while (url) {
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'X-Shopify-Access-Token': accessToken,
+          'Content-Type': 'application/json',
+        }
+      })
+      
+      if (!response.ok) {
+        break
+      }
+      
+      const data = await response.json()
+      const products = data.products || []
+      
+      // Add products to our collection
+      allProducts = allProducts.concat(products)
+      
+      // Get next page URL from Link header (SAME PYTHON LOGIC)
+      const linkHeader = response.headers.get('Link') || ''
+      url = getNextPageUrl(linkHeader)
+      
+    } catch (error) {
+      console.log(`❌ Error in collection ${collectionId} pagination:`, error)
+      break
+    }
+  }
+  
+  return allProducts
+}
+
+// Function to get products for each collection and create mapping using FULL pagination
+async function getProductCollectionMapping(shop: string, accessToken: string, collections: any[]) {
+  const productCollectionMap: { [productId: string]: string[] } = {}
+  
+  console.log(`🔍 MAPEANDO PRODUTOS POR COLEÇÃO COM PAGINAÇÃO COMPLETA...`)
+  
+  // Para cada coleção, buscar TODOS os seus produtos com paginação
+  for (const collection of collections) {
+    try {
+      console.log(`🔍 Buscando produtos da coleção "${collection.title}"...`)
+      
+      // Usar paginação completa para esta coleção
+      const products = await getAllProductsFromCollection(shop, accessToken, collection.id)
+      
+      // Para cada produto desta coleção, adicionar o ID da coleção
+      products.forEach((product: any) => {
+        if (!productCollectionMap[product.id]) {
+          productCollectionMap[product.id] = []
+        }
+        productCollectionMap[product.id].push(collection.id.toString())
+      })
+      
+      console.log(`✅ Coleção "${collection.title}": ${products.length} produtos (com paginação completa)`)
+      
+    } catch (error) {
+      console.log(`❌ Erro na coleção ${collection.title}:`, error)
+    }
+  }
+  
+  console.log(`✅ Mapeamento completo: ${Object.keys(productCollectionMap).length} produtos mapeados`)
+  return productCollectionMap
+}
+
+async function bulkUpdateProducts(shop: string, accessToken: string, products: any[], updates: any) {
+  const results: any[] = []
+  
+  // Process products sequentially to respect rate limits
+  for (let i = 0; i < products.length; i++) {
+    const product = products[i]
+    
+    try {
+      // Build update object
+      const updateData: any = { id: product.id }
+      
+      // Apply updates based on provided data
+      if (updates.title && updates.title !== product.title) {
+        updateData.title = updates.title
+      }
+      
+      if (updates.description !== undefined && updates.description !== product.body_html) {
+        updateData.body_html = updates.description
+      }
+      
+      if (updates.vendor && updates.vendor !== product.vendor) {
+        updateData.vendor = updates.vendor
+      }
+      
+      if (updates.productType && updates.productType !== product.product_type) {
+        updateData.product_type = updates.productType
+      }
+      
+      if (updates.tags !== undefined) {
+        updateData.tags = updates.tags
+      }
+      
+      if (updates.status && updates.status !== product.status) {
+        updateData.status = updates.status
+      }
+      
+      // Handle SEO updates
+      if (updates.seoTitle || updates.seoDescription) {
+        updateData.metafields_global_title_tag = updates.seoTitle || product.metafields_global_title_tag
+        updateData.metafields_global_description_tag = updates.seoDescription || product.metafields_global_description_tag
+      }
+      
+      // Handle pricing updates for variants
+      if (updates.price || updates.comparePrice) {
+        updateData.variants = product.variants.map((variant: any) => ({
+          id: variant.id,
+          price: updates.price || variant.price,
+          compare_at_price: updates.comparePrice || variant.compare_at_price
+        }))
+      }
+      
+      // Handle inventory updates
+      if (updates.inventory !== undefined) {
+        updateData.variants = product.variants.map((variant: any) => ({
+          id: variant.id,
+          inventory_quantity: updates.inventory
+        }))
+      }
+      
+      const response = await shopifyRequest(shop, accessToken, `products/${product.id}.json`, 'PUT', {
+        product: updateData
+      })
+      
+      results.push({
+        id: product.id,
+        success: true,
+        data: response.product
+      })
+      
+      // Add small delay to respect rate limits
+      if (i < products.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 200))
+      }
+      
+    } catch (error) {
+      results.push({
+        id: product.id,
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      })
+    }
+  }
+  
+  return results
+}
+
+// OPTIMIZED Mass Processing Function\nasync function massProcessProducts(shop: string, accessToken: string, products: any[], updateFunction: (chunk: any[]) => Promise<any[]>) {\n  const { chunkSize, maxChunks, chunkDelay } = RATE_LIMITS.concurrent\n  const chunks = chunkArray(products, chunkSize)\n  const allResults: any[] = []\n  \n  let totalProcessed = 0\n  let totalSuccessful = 0\n  let totalFailed = 0\n  \n  console.log(`🚀 MASS PROCESSING: ${products.length} products in ${chunks.length} chunks`)\n  \n  for (let i = 0; i < chunks.length; i += maxChunks) {\n    const chunkBatch = chunks.slice(i, i + maxChunks)\n    const batchPromises = chunkBatch.map(async (chunk) => {\n      try {\n        const chunkResults = await updateFunction(chunk)\n        const successful = chunkResults.filter((r: any) => r.success).length\n        const failed = chunkResults.filter((r: any) => !r.success).length\n        return { results: chunkResults, successful, failed }\n      } catch (error) {\n        return {\n          results: chunk.map((item: any) => ({ id: item.id, success: false, error: 'Processing failed' })),\n          successful: 0,\n          failed: chunk.length\n        }\n      }\n    })\n    \n    const batchResults = await Promise.allSettled(batchPromises)\n    batchResults.forEach((result) => {\n      if (result.status === 'fulfilled') {\n        const { results, successful, failed } = result.value\n        allResults.push(...results)\n        totalSuccessful += successful\n        totalFailed += failed\n        totalProcessed += results.length\n      }\n    })\n    \n    if (i + maxChunks < chunks.length) {\n      await delay(chunkDelay)\n    }\n  }\n  \n  return { results: allResults, totalProcessed, totalSuccessful, totalFailed }\n}\n\n// API Routes
+
+// Test connection
+app.post('/api/test-connection', async (c) => {
+  try {
+    const { shop, accessToken } = await c.req.json()
+    
+    if (!shop || !accessToken) {
+      return c.json({ error: 'Parâmetros obrigatórios: shop e accessToken' }, 400)
+    }
+    
+    // Test with a simple shop info request
+    const response = await shopifyRequest(shop, accessToken, 'shop.json')
+    
+    return c.json({ 
+      success: true, 
+      shop: response.shop.name,
+      domain: response.shop.domain,
+      plan: response.shop.plan_name
+    })
+  } catch (error) {
+    return c.json({ 
+      error: 'Falha na conexão: ' + (error instanceof Error ? error.message : 'Erro desconhecido')
+    }, 401)
+  }
+})
+
+// Favicon route to avoid 500 errors
+app.get('/favicon.ico', (c) => {
+  return c.text('', 204) // No content
+})
+
+// Test route for diagnosis modal fix
+app.get('/test-modal-diagnostico', (c) => {
+  return c.html(`<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teste - Modal de Diagnóstico Corrigido</title>
-    <script src="https://cdn.tailwindcss.com"><\/script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         .loading-spinner { animation: spin 1s linear infinite; }
@@ -437,13 +1010,18 @@ var ae=(e,t,a)=>(s,r)=>{let o=-1;return n(0);async function n(i){if(i<=o)throw n
         document.addEventListener('DOMContentLoaded', () => {
             new DiagnosticModalFix();
         });
-    <\/script>
+    </script>
 </body>
-</html>`));P.get("/test-variant-fix",e=>e.html(`<!DOCTYPE html>
+</html>`)
+})
+
+// Test route for variant values fix
+app.get('/test-variant-fix', (c) => {
+  return c.html(`<!DOCTYPE html>
 <html>
 <head>
     <title>Teste - Variant Values Fix</title>
-    <script src="https://cdn.tailwindcss.com"><\/script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="p-8">
     <h1 class="text-2xl font-bold mb-4">🧪 Teste da Correção de Valores de Variantes</h1>
@@ -534,17 +1112,791 @@ var ae=(e,t,a)=>(s,r)=>{let o=-1;return n(0);async function n(i){if(i<=o)throw n
             document.getElementById('test-modal').classList.remove('flex');
             document.getElementById('test-message-area').innerHTML = '';
         }
-    <\/script>
+    </script>
     <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
 </body>
-</html>`));P.post("/api/products",async e=>{try{const{shop:t,accessToken:a}=await e.req.json();if(!t||!a)return e.json({error:"Parâmetros obrigatórios: shop e accessToken"},400);if(!G(`products:${t}`,"products"))return e.json({error:"Rate limit exceeded"},429);console.log("Loading ALL products with working pagination logic");const s=await I(t,a);console.log(`✅ Successfully loaded ${s.length} total products`),console.log("🔍 Loading collections for product mapping...");const r=await Ce(t,a);console.log(`✅ Loaded ${r.length} collections`);const o=await bt(t,a,r),n=s.map(i=>({...i,collection_ids:o[i.id]||[]}));return n.length>0&&console.log("✅ First product with collections:",{id:n[0].id,title:n[0].title,collection_ids:n[0].collection_ids}),e.json({products:n,total:n.length})}catch(t){return e.json({error:"Erro ao buscar produtos: "+(t instanceof Error?t.message:"Erro desconhecido")},500)}});P.post("/api/collections",async e=>{try{const{shop:t,accessToken:a}=await e.req.json();if(!t||!a)return e.json({error:"Parâmetros obrigatórios: shop e accessToken"},400);if(!G(`collections:${t}`,"collections"))return e.json({error:"Rate limit exceeded"},429);const s=await Ce(t,a);return e.json({collections:s})}catch(t){return e.json({error:"Erro ao buscar coleções: "+(t instanceof Error?t.message:"Erro desconhecido")},500)}});P.post("/api/bulk-update",async e=>{try{const{shop:t,accessToken:a,productIds:s,updates:r}=await e.req.json();if(!t||!a||!s||!r)return e.json({error:"Parâmetros obrigatórios: shop, accessToken, productIds, updates"},400);if(!G(`bulk:${t}`,"bulkUpdate"))return e.json({error:"Rate limit exceeded for bulk operations"},429);const o=[];for(const i of s)try{const l=await V(t,a,`products/${i}.json`);o.push(l.product)}catch(l){console.error(`Error fetching product ${i}:`,l)}const n=await vt(t,a,o,r);return e.json({results:n,successful:n.filter(i=>i.success).length,failed:n.filter(i=>!i.success).length})}catch(t){return e.json({error:"Erro na atualização em massa: "+(t instanceof Error?t.message:"Erro desconhecido")},500)}});P.post("/api/analyze-variants",async e=>{try{const{shop:t,accessToken:a,scope:s,selectedProductIds:r}=await e.req.json();if(!t||!a)return e.json({error:"Parâmetros obrigatórios: shop e accessToken"},400);if(s==="selected"&&(!r||r.length===0))return e.json({error:'Para escopo "selected", selectedProductIds é obrigatório'},400);const o=Q("analyze-variants",{shop:t,scope:s,selectedProductIds:r}),n=Z(o,12e4);if(n)return console.log("⚡ VARIANT ANALYSIS CACHE HIT - INSTANT RESULTS"),e.json(n);console.log("⚡ ULTRA-FAST VARIANT ANALYSIS STARTING");const i=Date.now();let l=[];if(s==="selected"){const h=await I(t,a,500),g=new Set(r.map(b=>b.toString()));l=h.filter(b=>g.has(b.id.toString())),console.log(`⚡ Selected products filtered: ${l.length} products`)}else l=await I(t,a,1e3),console.log(`⚡ All products loaded: ${l.length} products`);const c={},d=[];let u=0;l.forEach(h=>{if(h.options?.length){if(h.options.forEach(g=>{const b=g.name;c[b]||(c[b]={name:b,values:new Set,productCount:0,products:[]});const m=c[b];m.productCount++,m.products.length<5&&m.products.push({id:h.id,title:h.title.substring(0,50)}),g.values?.length&&g.values.forEach(v=>m.values.add(v))}),d.length<20&&h.variants?.length){const g=h.variants[0];d.push({productId:h.id,productTitle:h.title.substring(0,50),variantId:g.id,price:g.price,option1:g.option1,option2:g.option2,option3:g.option3})}u+=h.variants?.length||0}}),Object.keys(c).forEach(h=>{const g=c[h];g.values=Array.from(g.values)});const p=Date.now()-i;console.log(`⚡ ULTRA-FAST ANALYSIS COMPLETE: ${Object.keys(c).length} options in ${p}ms`);const f={success:!0,totalProducts:l.length,optionStats:c,variantCount:u,sampleVariants:d,performanceMs:p};return ee(o,f),e.json(f)}catch(t){return console.error("❌ Variant analysis error:",t),e.json({error:"Erro na análise de variantes: "+(t instanceof Error?t.message:"Erro desconhecido")},500)}});P.post("/api/bulk-update-variant-titles",async e=>{try{const{shop:t,accessToken:a,titleMappings:s,scope:r,selectedProductIds:o}=await e.req.json();if(!t||!a||!s||s.length===0)return e.json({error:"Parâmetros obrigatórios: shop, accessToken, titleMappings"},400);if(r==="selected"&&(!o||o.length===0))return e.json({error:'Para escopo "selected", selectedProductIds é obrigatório'},400);const n=`variant-titles-${Date.now()}-${Math.random().toString(36).substring(7)}`;console.log(`⚡ STARTING REAL-TIME TRACKED OPERATION: ${n}`);const i=Date.now();let l=[];if(r==="all")l=await I(t,a,500);else{const m=await I(t,a,1e3),v=new Set(o.map(x=>x.toString()));l=m.filter(x=>v.has(x.id.toString()))}console.log(`⚡ Processing ${l.length} products for title updates`);const c=new Map;s.forEach(m=>{c.set(m.currentTitle.toLowerCase(),m.newTitle)});const d=l.filter(m=>m.options?.length?m.options.some(v=>{const x=c.get(v.name.toLowerCase());return x&&x!==v.name}):!1);console.log(`⚡ Found ${d.length} products needing updates`),k(n,{type:"variant-titles",status:"processing",total:d.length,analyzed:0,updated:0,failed:0,unchanged:0,details:[`Iniciando processamento de ${d.length} produtos`]});const u=10,p=[];for(let m=0;m<d.length;m+=u)p.push(d.slice(m,m+u));let f=0,h=0;const g=[];for(let m=0;m<p.length;m++){const v=p[m];console.log(`⚡ Processing batch ${m+1}/${p.length} (${v.length} products)`),k(n,{status:`Processando lote ${m+1}/${p.length}`,details:[`Processando lote ${m+1} de ${p.length} (${v.length} produtos)`]});const x=v.map(async y=>{try{const S=y.options.map(j=>{const A=c.get(j.name.toLowerCase());return A&&A!==j.name?{...j,name:A}:j}),T=await V(t,a,`products/${y.id}.json`,"PUT",{product:{id:y.id,options:S}});return{productId:y.id,title:y.title.substring(0,50),success:!0,changes:S.map(j=>j.name).slice(0,3).join(", ")}}catch(S){return{productId:y.id,title:y.title.substring(0,50),success:!1,error:S instanceof Error?S.message.substring(0,100):"Erro desconhecido"}}});(await Promise.allSettled(x)).forEach(y=>{y.status==="fulfilled"?(g.push(y.value),y.value.success?f++:h++):(h++,g.push({productId:"unknown",title:"Erro no batch",success:!1,error:"Batch processing failed"}))});const w=(m+1)*u,C=Math.min(w,d.length);k(n,{analyzed:C,updated:f,failed:h,unchanged:Math.max(0,C-f-h),status:`Processados ${C}/${d.length} produtos`,details:[`Lote ${m+1}/${p.length} concluído`,`${f} atualizados, ${h} falhas`]}),m<p.length-1&&await new Promise(y=>setTimeout(y,100))}const b=Date.now()-i;return console.log(`⚡ ULTRA-FAST BULK UPDATE COMPLETE: ${f} updated, ${h} failed in ${b}ms`),k(n,{status:"completed",details:[`Operação concluída em ${Math.round(b/1e3)}s`,`${f} produtos atualizados com sucesso`,`${h} produtos com erro`]}),e.json({success:!0,operationId:n,totalProducts:l.length,updatedCount:f,failedCount:h,results:g.slice(0,20),performanceMs:b})}catch(t){return console.error("❌ Bulk variant titles error:",t),e.json({error:"Erro na atualização em massa de títulos de variantes: "+(t instanceof Error?t.message:"Erro desconhecido")},500)}});P.post("/api/bulk-update-variant-values",async e=>{try{const{shop:t,accessToken:a,valueMappings:s,scope:r,selectedProductIds:o}=await e.req.json();if(!t||!a||!s||s.length===0)return e.json({error:"Parâmetros obrigatórios: shop, accessToken, valueMappings"},400);if(r==="selected"&&(!o||o.length===0))return e.json({error:'Para escopo "selected", selectedProductIds é obrigatório'},400);const n=`variant-values-${Date.now()}-${Math.random().toString(36).substring(7)}`;console.log(`⚡ STARTING REAL-TIME TRACKED OPERATION: ${n}`);const i=Date.now();if(!G(`bulk-variant-values:${t}`,"bulkVariants"))return e.json({error:"Rate limit exceeded for bulk variant value operations"},429);let l=[];r==="all"?l=await I(t,a,250):l=(await I(t,a,250)).filter(b=>o.includes(b.id.toString())||o.includes(b.id));let c=0,d=0;const u=[];console.log(`🎯 Processando valores de variantes em ${l.length} produtos (escopo: ${r})`),k(n,{type:"variant-values",status:"processing",total:l.length,analyzed:0,updated:0,failed:0,unchanged:0,details:[`Iniciando processamento de ${l.length} produtos com valores de variantes`]});const p=8,f=[];for(let g=0;g<l.length;g+=p)f.push(l.slice(g,g+p));for(let g=0;g<f.length;g++){const b=f[g];console.log(`⚡ Processing batch ${g+1}/${f.length} (${b.length} products)`),k(n,{status:`Processando lote ${g+1}/${f.length}`,details:[`Processando lote ${g+1} de ${f.length} (${b.length} produtos)`]});const m=b.map(async v=>{try{let x=!1;const O=[];if(v.variants&&v.variants.length>0)for(const w of v.variants){let C=!1;const y=[];let S=0;if(w.option1||w.option2||w.option3){const T=[w.option1,w.option2,w.option3].filter(Boolean),j=v.options?.map(A=>A.name)||[];for(let A=0;A<T.length;A++){const $=T[A],K=j[A],R=s.find(se=>se.optionName===K&&se.currentValue.toLowerCase()===$.toLowerCase());R&&(R.newValue&&R.newValue!==$&&(A===0?w.option1=R.newValue:A===1?w.option2=R.newValue:A===2&&(w.option3=R.newValue),C=!0,x=!0,console.log(`🔄 ${v.title}: ${K} "${$}" → "${R.newValue}"`)),R.priceExtra&&R.priceExtra>0&&(S+=R.priceExtra,C=!0,x=!0,console.log(`💰 ${v.title}: Preço extra +R$ ${R.priceExtra} para ${K}="${R.newValue||$}"`)))}}if(C)try{const T={id:w.id,option1:w.option1,option2:w.option2||null,option3:w.option3||null};if(S>0){const $=((parseFloat(w.price)||0)+S).toFixed(2);T.price=$,console.log(`💰 ${v.title}: Preço atualizado de R$ ${w.price} para R$ ${$} (+R$ ${S.toFixed(2)})`)}const j=await V(t,a,`products/${v.id}/variants/${w.id}.json`,"PUT",{variant:T});O.push(w)}catch(T){console.error(`❌ Erro ao atualizar variante ${w.id}:`,T),d++}}x&&O.length>0&&(c++,u.push({success:!0,productId:v.id,title:v.title,changes:`${O.length} variantes atualizadas`}),console.log(`✅ ${v.title}: ${O.length} variantes atualizadas`))}catch(x){d++,u.push({success:!1,productId:v.id,title:v.title,error:x instanceof Error?x.message:"Erro desconhecido"}),console.error(`❌ Erro ao processar produto ${v.id}:`,x)}});await Promise.all(m),k(n,{analyzed:(g+1)*p,updated:c,failed:d,status:`Lote ${g+1}/${f.length} concluído`})}const h=Date.now()-i;return console.log(`🎉 ULTRA-FAST VARIANT VALUES UPDATE COMPLETE: ${c} updated, ${d} failed in ${h}ms`),k(n,{status:"completed",details:[`Operação concluída em ${Math.round(h/1e3)}s`,`${c} produtos atualizados com sucesso`,`${d} produtos com erro`]}),e.json({success:!0,operationId:n,totalProducts:l.length,updatedCount:c,failedCount:d,results:u.slice(0,50),performanceMs:h})}catch(t){return e.json({error:"Erro na atualização em massa de valores de variantes: "+(t instanceof Error?t.message:"Erro desconhecido")},500)}});P.get("/api/operation-progress/:operationId",async e=>{try{const t=e.req.param("operationId");if(!t)return e.json({error:"Operation ID is required"},400);const a=U.get(t);if(!a)return e.json({error:"Operation not found",operationId:t},404);const s=a.total>0?Math.round(a.analyzed/a.total*100):0,r=Date.now()-a.startTime;return e.json({success:!0,operationId:t,progress:{...a,percentage:s,elapsedMs:r,isComplete:a.analyzed>=a.total&&a.total>0}})}catch(t){return e.json({error:"Error fetching progress: "+(t instanceof Error?t.message:"Unknown error")},500)}});P.delete("/api/operation-progress/:operationId",async e=>{const t=e.req.param("operationId");return U.delete(t),e.json({success:!0,message:"Operation progress cleared"})});P.post("/api/test-diagnostic-progress",async e=>{try{const{stage:t}=await e.req.json(),a={start:{analyzed:0,updated:0,failed:0,unchanged:0,total:50,status:"Iniciando processamento...",percentage:0},progress1:{analyzed:15,updated:12,failed:1,unchanged:2,total:50,status:"Processando títulos das opções...",percentage:30},progress2:{analyzed:30,updated:24,failed:3,unchanged:3,total:50,status:"Aplicando alterações em massa...",percentage:60},progress3:{analyzed:45,updated:38,failed:4,unchanged:3,total:50,status:"Finalizando processamento...",percentage:90},complete:{analyzed:50,updated:42,failed:5,unchanged:3,total:50,status:"Processamento concluído!",percentage:100}},s=a[t]||a.start;return e.json({success:!0,data:s,timestamp:new Date().toISOString()})}catch(t){return e.json({error:"Erro no teste de diagnóstico: "+(t instanceof Error?t.message:"Erro desconhecido")},500)}});P.get("/",e=>e.html(`
+</html>`)
+})
+
+// Get all products - ALWAYS loads ALL products using working pagination logic
+app.post('/api/products', async (c) => {
+  try {
+    const { shop, accessToken } = await c.req.json()
+    
+    if (!shop || !accessToken) {
+      return c.json({ error: 'Parâmetros obrigatórios: shop e accessToken' }, 400)
+    }
+    
+    // Rate limiting - OPTIMIZED for mass operations
+    if (!rateLimit(`products:${shop}`, 'products')) {
+      return c.json({ error: 'Rate limit exceeded' }, 429)
+    }
+    
+    // SEMPRE carrega TODOS os produtos usando a lógica de paginação que funciona
+    console.log('Loading ALL products with working pagination logic')
+    const allProducts = await getAllProducts(shop, accessToken)
+    console.log(`✅ Successfully loaded ${allProducts.length} total products`)
+    
+    // Buscar coleções para o mapeamento
+    console.log('🔍 Loading collections for product mapping...')
+    const collections = await getAllCollections(shop, accessToken)
+    console.log(`✅ Loaded ${collections.length} collections`)
+    
+    // Criar mapeamento produto → coleções
+    const productCollectionMap = await getProductCollectionMapping(shop, accessToken, collections)
+    
+    // Adicionar collection_ids aos produtos
+    const productsWithCollections = allProducts.map(product => ({
+      ...product,
+      collection_ids: productCollectionMap[product.id] || []
+    }))
+    
+    // Log first product to verify structure
+    if (productsWithCollections.length > 0) {
+      console.log('✅ First product with collections:', {
+        id: productsWithCollections[0].id,
+        title: productsWithCollections[0].title,
+        collection_ids: productsWithCollections[0].collection_ids
+      })
+    }
+    
+    return c.json({ 
+      products: productsWithCollections,
+      total: productsWithCollections.length
+    })
+  } catch (error) {
+    return c.json({ 
+      error: 'Erro ao buscar produtos: ' + (error instanceof Error ? error.message : 'Erro desconhecido')
+    }, 500)
+  }
+})
+
+// Get collections using same pagination logic as products
+app.post('/api/collections', async (c) => {
+  try {
+    const { shop, accessToken } = await c.req.json()
+    
+    if (!shop || !accessToken) {
+      return c.json({ error: 'Parâmetros obrigatórios: shop e accessToken' }, 400)
+    }
+    
+    // Rate limiting - OPTIMIZED
+    if (!rateLimit(`collections:${shop}`, 'collections')) {
+      return c.json({ error: 'Rate limit exceeded' }, 429)
+    }
+    
+    const collections = await getAllCollections(shop, accessToken)
+    
+    return c.json({ collections })
+  } catch (error) {
+    return c.json({ 
+      error: 'Erro ao buscar coleções: ' + (error instanceof Error ? error.message : 'Erro desconhecido')
+    }, 500)
+  }
+})
+
+// Bulk update products
+app.post('/api/bulk-update', async (c) => {
+  try {
+    const { shop, accessToken, productIds, updates } = await c.req.json()
+    
+    if (!shop || !accessToken || !productIds || !updates) {
+      return c.json({ error: 'Parâmetros obrigatórios: shop, accessToken, productIds, updates' }, 400)
+    }
+    
+    // Rate limiting for bulk operations - MASSIVELY OPTIMIZED
+    if (!rateLimit(`bulk:${shop}`, 'bulkUpdate')) {
+      return c.json({ error: 'Rate limit exceeded for bulk operations' }, 429)
+    }
+    
+    // Get full product data first
+    const products: any[] = []
+    for (const id of productIds) {
+      try {
+        const response = await shopifyRequest(shop, accessToken, `products/${id}.json`)
+        products.push(response.product)
+      } catch (error) {
+        console.error(`Error fetching product ${id}:`, error)
+      }
+    }
+    
+    const results = await bulkUpdateProducts(shop, accessToken, products, updates)
+    
+    return c.json({ 
+      results,
+      successful: results.filter(r => r.success).length,
+      failed: results.filter(r => !r.success).length
+    })
+  } catch (error) {
+    return c.json({ 
+      error: 'Erro na atualização em massa: ' + (error instanceof Error ? error.message : 'Erro desconhecido')
+    }, 500)
+  }
+})
+
+// ULTRA-FAST variant analysis with intelligent caching and optimized processing
+app.post('/api/analyze-variants', async (c) => {
+  try {
+    const { shop, accessToken, scope, selectedProductIds } = await c.req.json()
+    
+    if (!shop || !accessToken) {
+      return c.json({ error: 'Parâmetros obrigatórios: shop e accessToken' }, 400)
+    }
+    
+    // SPEED: Validate scope parameters quickly
+    if (scope === 'selected' && (!selectedProductIds || selectedProductIds.length === 0)) {
+      return c.json({ error: 'Para escopo "selected", selectedProductIds é obrigatório' }, 400)
+    }
+    
+    // SPEED: Check cache first for instant results
+    const cacheKey = getCacheKey('analyze-variants', { shop, scope, selectedProductIds })
+    const cached = getCached(cacheKey, 120000) // 2 min cache
+    if (cached) {
+      console.log(`⚡ VARIANT ANALYSIS CACHE HIT - INSTANT RESULTS`)
+      return c.json(cached)
+    }
+    
+    console.log(`⚡ ULTRA-FAST VARIANT ANALYSIS STARTING`)
+    const startTime = Date.now()
+    
+    // SPEED: Get products with optimized loading
+    let productsToAnalyze = []
+    if (scope === 'selected') {
+      // SPEED: Only get products we already have in cache or load minimal set
+      const allProducts = await getAllProducts(shop, accessToken, 500) // Limit for speed
+      const selectedSet = new Set(selectedProductIds.map(id => id.toString()))
+      productsToAnalyze = allProducts.filter(product => 
+        selectedSet.has(product.id.toString())
+      )
+      console.log(`⚡ Selected products filtered: ${productsToAnalyze.length} products`)
+    } else {
+      // SPEED: Use cached products if available, otherwise load with limit
+      productsToAnalyze = await getAllProducts(shop, accessToken, 1000) // Reasonable limit
+      console.log(`⚡ All products loaded: ${productsToAnalyze.length} products`)
+    }
+    
+    // SPEED: Ultra-fast variant analysis with optimized data structures
+    const optionStats: any = {}
+    const variantSamples: any[] = []
+    let totalVariants = 0
+    
+    // SPEED: Single pass through products with minimal operations
+    productsToAnalyze.forEach(product => {
+      if (!product.options?.length) return
+      
+      // SPEED: Process options efficiently
+      product.options.forEach((option: any) => {
+        const optionName = option.name
+        
+        if (!optionStats[optionName]) {
+          optionStats[optionName] = {
+            name: optionName,
+            values: new Set(),
+            productCount: 0,
+            products: []
+          }
+        }
+        
+        const stat = optionStats[optionName]
+        stat.productCount++
+        
+        // SPEED: Only store first 5 products for performance
+        if (stat.products.length < 5) {
+          stat.products.push({
+            id: product.id,
+            title: product.title.substring(0, 50) // Truncate for speed
+          })
+        }
+        
+        // SPEED: Add values efficiently
+        if (option.values?.length) {
+          option.values.forEach((value: string) => stat.values.add(value))
+        }
+      })
+      
+      // SPEED: Only collect first 20 variant samples
+      if (variantSamples.length < 20 && product.variants?.length) {
+        const sampleVariant = product.variants[0]
+        variantSamples.push({
+          productId: product.id,
+          productTitle: product.title.substring(0, 50),
+          variantId: sampleVariant.id,
+          price: sampleVariant.price,
+          option1: sampleVariant.option1,
+          option2: sampleVariant.option2,
+          option3: sampleVariant.option3
+        })
+      }
+      
+      totalVariants += product.variants?.length || 0
+    })
+    
+    // SPEED: Convert Sets to Arrays efficiently
+    Object.keys(optionStats).forEach(key => {
+      const stat = optionStats[key]
+      stat.values = Array.from(stat.values)
+    })
+    
+    const analyzeTime = Date.now() - startTime
+    console.log(`⚡ ULTRA-FAST ANALYSIS COMPLETE: ${Object.keys(optionStats).length} options in ${analyzeTime}ms`)
+    
+    const result = {
+      success: true,
+      totalProducts: productsToAnalyze.length,
+      optionStats: optionStats,
+      variantCount: totalVariants,
+      sampleVariants: variantSamples,
+      performanceMs: analyzeTime
+    }
+    
+    // SPEED: Cache results for instant future access
+    setCache(cacheKey, result)
+    
+    return c.json(result)
+    
+  } catch (error) {
+    console.error('❌ Variant analysis error:', error)
+    return c.json({ 
+      error: 'Erro na análise de variantes: ' + (error instanceof Error ? error.message : 'Erro desconhecido')
+    }, 500)
+  }
+})
+
+// ULTRA-FAST bulk update variant titles with REAL-TIME progress tracking
+app.post('/api/bulk-update-variant-titles', async (c) => {
+  try {
+    const { shop, accessToken, titleMappings, scope, selectedProductIds } = await c.req.json()
+    
+    if (!shop || !accessToken || !titleMappings || titleMappings.length === 0) {
+      return c.json({ error: 'Parâmetros obrigatórios: shop, accessToken, titleMappings' }, 400)
+    }
+    
+    if (scope === 'selected' && (!selectedProductIds || selectedProductIds.length === 0)) {
+      return c.json({ error: 'Para escopo "selected", selectedProductIds é obrigatório' }, 400)
+    }
+    
+    // REAL-TIME: Create unique operation ID for progress tracking
+    const operationId = `variant-titles-${Date.now()}-${Math.random().toString(36).substring(7)}`
+    console.log(`⚡ STARTING REAL-TIME TRACKED OPERATION: ${operationId}`)
+    
+    const startTime = Date.now()
+    
+    // SPEED: Get products efficiently with caching
+    let productsToProcess = []
+    if (scope === 'all') {
+      productsToProcess = await getAllProducts(shop, accessToken, 500) // Speed limit
+    } else {
+      const allProducts = await getAllProducts(shop, accessToken, 1000)
+      const selectedSet = new Set(selectedProductIds.map(id => id.toString()))
+      productsToProcess = allProducts.filter(product => 
+        selectedSet.has(product.id.toString())
+      )
+    }
+    
+    console.log(`⚡ Processing ${productsToProcess.length} products for title updates`)
+    
+    // SPEED: Pre-process mappings for fast lookup
+    const mappingMap = new Map()
+    titleMappings.forEach(mapping => {
+      mappingMap.set(mapping.currentTitle.toLowerCase(), mapping.newTitle)
+    })
+    
+    // SPEED: Filter products that actually need updates
+    const productsNeedingUpdate = productsToProcess.filter(product => {
+      if (!product.options?.length) return false
+      
+      return product.options.some(option => {
+        const newTitle = mappingMap.get(option.name.toLowerCase())
+        return newTitle && newTitle !== option.name
+      })
+    })
+    
+    console.log(`⚡ Found ${productsNeedingUpdate.length} products needing updates`)
+    
+    // REAL-TIME: Initialize progress tracking
+    updateOperationProgress(operationId, {
+      type: 'variant-titles',
+      status: 'processing',
+      total: productsNeedingUpdate.length,
+      analyzed: 0,
+      updated: 0,
+      failed: 0,
+      unchanged: 0,
+      details: [`Iniciando processamento de ${productsNeedingUpdate.length} produtos`]
+    })
+    
+    // SPEED: Process in parallel batches for maximum speed
+    const batchSize = 10 // Process 10 products simultaneously
+    const batches = []
+    
+    for (let i = 0; i < productsNeedingUpdate.length; i += batchSize) {
+      batches.push(productsNeedingUpdate.slice(i, i + batchSize))
+    }
+    
+    let updatedCount = 0
+    let failedCount = 0
+    const results: any[] = []
+    
+    // REAL-TIME: Process batches with progress updates
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex]
+      console.log(`⚡ Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} products)`)
+      
+      // REAL-TIME: Update progress before batch
+      updateOperationProgress(operationId, {
+        status: `Processando lote ${batchIndex + 1}/${batches.length}`,
+        details: [`Processando lote ${batchIndex + 1} de ${batches.length} (${batch.length} produtos)`]
+      })
+      
+      const batchPromises = batch.map(async (product) => {
+        try {
+          const updatedOptions = product.options.map(option => {
+            const newTitle = mappingMap.get(option.name.toLowerCase())
+            return newTitle && newTitle !== option.name 
+              ? { ...option, name: newTitle }
+              : option
+          })
+          
+          const response = await shopifyRequest(shop, accessToken, `products/${product.id}.json`, 'PUT', {
+            product: {
+              id: product.id,
+              options: updatedOptions
+            }
+          })
+          
+          return {
+            productId: product.id,
+            title: product.title.substring(0, 50), // Truncate for performance
+            success: true,
+            changes: updatedOptions.map(opt => opt.name).slice(0, 3).join(', ') // Limit for performance
+          }
+        } catch (error) {
+          return {
+            productId: product.id,
+            title: product.title.substring(0, 50),
+            success: false,
+            error: error instanceof Error ? error.message.substring(0, 100) : 'Erro desconhecido'
+          }
+        }
+      })
+      
+      // SPEED: Wait for batch to complete
+      const batchResults = await Promise.allSettled(batchPromises)
+      
+      batchResults.forEach(result => {
+        if (result.status === 'fulfilled') {
+          results.push(result.value)
+          if (result.value.success) {
+            updatedCount++
+          } else {
+            failedCount++
+          }
+        } else {
+          failedCount++
+          results.push({
+            productId: 'unknown',
+            title: 'Erro no batch',
+            success: false,
+            error: 'Batch processing failed'
+          })
+        }
+      })
+      
+      // REAL-TIME: Update progress after each batch
+      const analyzed = (batchIndex + 1) * batchSize
+      const actualAnalyzed = Math.min(analyzed, productsNeedingUpdate.length)
+      
+      updateOperationProgress(operationId, {
+        analyzed: actualAnalyzed,
+        updated: updatedCount,
+        failed: failedCount,
+        unchanged: Math.max(0, actualAnalyzed - updatedCount - failedCount),
+        status: `Processados ${actualAnalyzed}/${productsNeedingUpdate.length} produtos`,
+        details: [
+          `Lote ${batchIndex + 1}/${batches.length} concluído`,
+          `${updatedCount} atualizados, ${failedCount} falhas`
+        ]
+      })
+      
+      // SPEED: Small delay between batches to respect rate limits
+      if (batchIndex < batches.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 100)) // Minimal delay
+      }
+    }
+    
+    const processTime = Date.now() - startTime
+    console.log(`⚡ ULTRA-FAST BULK UPDATE COMPLETE: ${updatedCount} updated, ${failedCount} failed in ${processTime}ms`)
+    
+    // REAL-TIME: Mark operation as completed
+    updateOperationProgress(operationId, {
+      status: 'completed',
+      details: [
+        `Operação concluída em ${Math.round(processTime / 1000)}s`,
+        `${updatedCount} produtos atualizados com sucesso`,
+        `${failedCount} produtos com erro`
+      ]
+    })
+    
+    return c.json({ 
+      success: true,
+      operationId, // CRITICAL: Return operationId for frontend polling
+      totalProducts: productsToProcess.length,
+      updatedCount,
+      failedCount,
+      results: results.slice(0, 20), // Limit for performance
+      performanceMs: processTime
+    })
+    
+  } catch (error) {
+    console.error('❌ Bulk variant titles error:', error)
+    return c.json({ 
+      error: 'Erro na atualização em massa de títulos de variantes: ' + (error instanceof Error ? error.message : 'Erro desconhecido')
+    }, 500)
+  }
+})
+
+// ULTRA-FAST bulk update variant values with REAL-TIME progress tracking
+app.post('/api/bulk-update-variant-values', async (c) => {
+  try {
+    const { shop, accessToken, valueMappings, scope, selectedProductIds } = await c.req.json()
+    
+    if (!shop || !accessToken || !valueMappings || valueMappings.length === 0) {
+      return c.json({ error: 'Parâmetros obrigatórios: shop, accessToken, valueMappings' }, 400)
+    }
+    
+    // Validate scope parameters
+    if (scope === 'selected' && (!selectedProductIds || selectedProductIds.length === 0)) {
+      return c.json({ error: 'Para escopo "selected", selectedProductIds é obrigatório' }, 400)
+    }
+    
+    // REAL-TIME: Create unique operation ID for progress tracking
+    const operationId = `variant-values-${Date.now()}-${Math.random().toString(36).substring(7)}`
+    console.log(`⚡ STARTING REAL-TIME TRACKED OPERATION: ${operationId}`)
+    
+    const startTime = Date.now()
+    
+    // Rate limiting for bulk variant values - MASSIVELY OPTIMIZED
+    if (!rateLimit(`bulk-variant-values:${shop}`, 'bulkVariants')) {
+      return c.json({ error: 'Rate limit exceeded for bulk variant value operations' }, 429)
+    }
+    
+    // Get products based on scope
+    let productsToProcess = []
+    if (scope === 'all') {
+      productsToProcess = await getAllProducts(shop, accessToken, 250)
+    } else {
+      // Get only selected products
+      const allProducts = await getAllProducts(shop, accessToken, 250)
+      productsToProcess = allProducts.filter(product => 
+        selectedProductIds.includes(product.id.toString()) || selectedProductIds.includes(product.id)
+      )
+    }
+    
+    let updatedCount = 0
+    let failedCount = 0
+    const results: any[] = []
+    
+    console.log(`🎯 Processando valores de variantes em ${productsToProcess.length} produtos (escopo: ${scope})`)
+    
+    // REAL-TIME: Initialize progress tracking
+    updateOperationProgress(operationId, {
+      type: 'variant-values',
+      status: 'processing',
+      total: productsToProcess.length,
+      analyzed: 0,
+      updated: 0,
+      failed: 0,
+      unchanged: 0,
+      details: [`Iniciando processamento de ${productsToProcess.length} produtos com valores de variantes`]
+    })
+    
+    // SPEED: Process in parallel batches for maximum speed
+    const batchSize = 8 // Process 8 products simultaneously for variant values
+    const batches = []
+    
+    for (let i = 0; i < productsToProcess.length; i += batchSize) {
+      batches.push(productsToProcess.slice(i, i + batchSize))
+    }
+    
+    // REAL-TIME: Process batches with progress updates
+    for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+      const batch = batches[batchIndex]
+      console.log(`⚡ Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} products)`)
+      
+      // REAL-TIME: Update progress before batch
+      updateOperationProgress(operationId, {
+        status: `Processando lote ${batchIndex + 1}/${batches.length}`,
+        details: [`Processando lote ${batchIndex + 1} de ${batches.length} (${batch.length} produtos)`]
+      })
+      
+      const batchPromises = batch.map(async (product) => {
+      try {
+        let hasChanges = false
+        const updatedVariants = []
+        
+        // Process each variant
+        if (product.variants && product.variants.length > 0) {
+          for (const variant of product.variants) {
+            let variantChanged = false
+            const updatedOptions = []
+            
+            // Check each option value in this variant and calculate price extras
+            let totalPriceExtra = 0
+            if (variant.option1 || variant.option2 || variant.option3) {
+              const optionValues = [variant.option1, variant.option2, variant.option3].filter(Boolean)
+              const optionNames = product.options?.map((opt: any) => opt.name) || []
+              
+              for (let i = 0; i < optionValues.length; i++) {
+                const currentValue = optionValues[i]
+                const optionName = optionNames[i]
+                
+                // Find matching value mapping
+                const mapping = valueMappings.find((m: any) => 
+                  m.optionName === optionName && 
+                  m.currentValue.toLowerCase() === currentValue.toLowerCase()
+                )
+                
+                if (mapping) {
+                  // Check if value should be changed
+                  if (mapping.newValue && mapping.newValue !== currentValue) {
+                    // Update the variant option value
+                    if (i === 0) variant.option1 = mapping.newValue
+                    else if (i === 1) variant.option2 = mapping.newValue  
+                    else if (i === 2) variant.option3 = mapping.newValue
+                    
+                    variantChanged = true
+                    hasChanges = true
+                    
+                    console.log(`🔄 ${product.title}: ${optionName} "${currentValue}" → "${mapping.newValue}"`)
+                  }
+                  
+                  // Add price extra if specified
+                  if (mapping.priceExtra && mapping.priceExtra > 0) {
+                    totalPriceExtra += mapping.priceExtra
+                    variantChanged = true
+                    hasChanges = true
+                    
+                    console.log(`💰 ${product.title}: Preço extra +R$ ${mapping.priceExtra} para ${optionName}="${mapping.newValue || currentValue}"`)
+                  }
+                }
+              }
+            }
+            
+            // Update variant if changed
+            if (variantChanged) {
+              try {
+                const updateData: any = {
+                  id: variant.id,
+                  option1: variant.option1,
+                  option2: variant.option2 || null,
+                  option3: variant.option3 || null
+                }
+                
+                // Apply price extra if any
+                if (totalPriceExtra > 0) {
+                  const currentPrice = parseFloat(variant.price) || 0
+                  const newPrice = (currentPrice + totalPriceExtra).toFixed(2)
+                  updateData.price = newPrice
+                  
+                  console.log(`💰 ${product.title}: Preço atualizado de R$ ${variant.price} para R$ ${newPrice} (+R$ ${totalPriceExtra.toFixed(2)})`)
+                }
+                
+                const updateResponse = await shopifyRequest(
+                  shop, 
+                  accessToken, 
+                  `products/${product.id}/variants/${variant.id}.json`, 
+                  'PUT',
+                  { variant: updateData }
+                )
+                
+                updatedVariants.push(variant)
+                
+              } catch (variantError) {
+                console.error(`❌ Erro ao atualizar variante ${variant.id}:`, variantError)
+                failedCount++
+              }
+            }
+          }
+        }
+        
+        if (hasChanges && updatedVariants.length > 0) {
+          updatedCount++
+          results.push({
+            success: true,
+            productId: product.id,
+            title: product.title,
+            changes: `${updatedVariants.length} variantes atualizadas`
+          })
+          
+          console.log(`✅ ${product.title}: ${updatedVariants.length} variantes atualizadas`)
+        }
+        
+      } catch (error) {
+        failedCount++
+        results.push({
+          success: false,
+          productId: product.id,
+          title: product.title,
+          error: error instanceof Error ? error.message : 'Erro desconhecido'
+        })
+        
+        console.error(`❌ Erro ao processar produto ${product.id}:`, error)
+      }
+    }
+    
+    const processTime = Date.now() - startTime
+    console.log(`🎉 ULTRA-FAST VARIANT VALUES UPDATE COMPLETE: ${updatedCount} updated, ${failedCount} failed in ${processTime}ms`)
+    
+    // REAL-TIME: Mark operation as completed
+    updateOperationProgress(operationId, {
+      status: 'completed',
+      details: [
+        `Operação concluída em ${Math.round(processTime / 1000)}s`,
+        `${updatedCount} produtos atualizados com sucesso`,
+        `${failedCount} produtos com erro`
+      ]
+    })
+    
+    return c.json({ 
+      success: true,
+      operationId, // CRITICAL: Return operationId for frontend polling
+      totalProducts: productsToProcess.length,
+      updatedCount,
+      failedCount,
+      results: results.slice(0, 50), // Limit results for performance
+      performanceMs: processTime
+    })
+  } catch (error) {
+    return c.json({ 
+      error: 'Erro na atualização em massa de valores de variantes: ' + (error instanceof Error ? error.message : 'Erro desconhecido')
+    }, 500)
+  }
+})
+
+// REAL-TIME progress tracking endpoint
+app.get('/api/operation-progress/:operationId', async (c) => {
+  try {
+    const operationId = c.req.param('operationId')
+    
+    if (!operationId) {
+      return c.json({ error: 'Operation ID is required' }, 400)
+    }
+    
+    const progress = activeOperations.get(operationId)
+    
+    if (!progress) {
+      return c.json({ 
+        error: 'Operation not found',
+        operationId 
+      }, 404)
+    }
+    
+    // Calculate percentage
+    const percentage = progress.total > 0 ? Math.round((progress.analyzed / progress.total) * 100) : 0
+    const elapsed = Date.now() - progress.startTime
+    
+    return c.json({
+      success: true,
+      operationId,
+      progress: {
+        ...progress,
+        percentage,
+        elapsedMs: elapsed,
+        isComplete: progress.analyzed >= progress.total && progress.total > 0
+      }
+    })
+  } catch (error) {
+    return c.json({ 
+      error: 'Error fetching progress: ' + (error instanceof Error ? error.message : 'Unknown error')
+    }, 500)
+  }
+})
+
+// Clean up completed operations
+app.delete('/api/operation-progress/:operationId', async (c) => {
+  const operationId = c.req.param('operationId')
+  activeOperations.delete(operationId)
+  return c.json({ success: true, message: 'Operation progress cleared' })
+})
+
+// API endpoint for testing diagnostic modal
+app.post('/api/test-diagnostic-progress', async (c) => {
+  try {
+    const { stage } = await c.req.json()
+    
+    // Simulate different stages of processing
+    const stages = {
+      'start': {
+        analyzed: 0,
+        updated: 0,
+        failed: 0,
+        unchanged: 0,
+        total: 50,
+        status: 'Iniciando processamento...',
+        percentage: 0
+      },
+      'progress1': {
+        analyzed: 15,
+        updated: 12,
+        failed: 1,
+        unchanged: 2,
+        total: 50,
+        status: 'Processando títulos das opções...',
+        percentage: 30
+      },
+      'progress2': {
+        analyzed: 30,
+        updated: 24,
+        failed: 3,
+        unchanged: 3,
+        total: 50,
+        status: 'Aplicando alterações em massa...',
+        percentage: 60
+      },
+      'progress3': {
+        analyzed: 45,
+        updated: 38,
+        failed: 4,
+        unchanged: 3,
+        total: 50,
+        status: 'Finalizando processamento...',
+        percentage: 90
+      },
+      'complete': {
+        analyzed: 50,
+        updated: 42,
+        failed: 5,
+        unchanged: 3,
+        total: 50,
+        status: 'Processamento concluído!',
+        percentage: 100
+      }
+    }
+    
+    const stageData = stages[stage] || stages.start
+    
+    return c.json({
+      success: true,
+      data: stageData,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error) {
+    return c.json({ 
+      error: 'Erro no teste de diagnóstico: ' + (error instanceof Error ? error.message : 'Erro desconhecido')
+    }, 500)
+  }
+})
+
+// Main page with complete interface
+app.get('/', (c) => {
+  return c.html(`
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Infinity Bulk Manager - Gerenciamento em Massa de Produtos Shopify</title>
-        <script src="https://cdn.tailwindcss.com"><\/script>
+        <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
             .checkbox-row:hover { background-color: #f3f4f6; }
@@ -1018,7 +2370,10 @@ var ae=(e,t,a)=>(s,r)=>{let o=-1;return n(0);async function n(i){if(i<=o)throw n
                 </div>
             </div>
         </div>
-        <script src="/static/app.js"><\/script>
+        <script src="/static/app.js"></script>
     </body>
     </html>
-  `));const le=new Te,xt=Object.assign({"/src/index.tsx":P});let Se=!1;for(const[,e]of Object.entries(xt))e&&(le.route("/",e),le.notFound(e.notFoundHandler),Se=!0);if(!Se)throw new Error("Can't import modules from ['/src/index.tsx','/app/server.ts']");export{le as default};
+  `)
+})
+
+export default app
