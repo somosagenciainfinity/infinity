@@ -2079,146 +2079,220 @@ app.get('/', (c) => {
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
-            .checkbox-row:hover { background-color: #f3f4f6; }
+            /* Infinity Bulk Manager Dark Theme with Orange Accents */
+            body {
+                background: linear-gradient(135deg, #1a1a1a 0%, #2d1810 50%, #1a1a1a 100%);
+                color: #e0e0e0;
+            }
+            .dark-card {
+                background: rgba(30, 30, 30, 0.95);
+                border: 1px solid rgba(251, 146, 60, 0.2);
+                backdrop-filter: blur(10px);
+            }
+            .orange-accent { color: #fb923c; }
+            .orange-btn {
+                background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
+                border: none;
+                box-shadow: 0 4px 15px rgba(251, 146, 60, 0.3);
+            }
+            .orange-btn:hover {
+                background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+                box-shadow: 0 6px 20px rgba(251, 146, 60, 0.4);
+                transform: translateY(-2px);
+            }
+            .dark-btn {
+                background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+                border: 1px solid rgba(251, 146, 60, 0.3);
+                color: #e0e0e0;
+            }
+            .dark-btn:hover {
+                background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+                box-shadow: 0 4px 15px rgba(251, 146, 60, 0.2);
+            }
+            .checkbox-row:hover { background-color: rgba(251, 146, 60, 0.1); }
             .checkbox-large { transform: scale(1.2); }
-            .product-row { cursor: pointer; transition: all 0.2s; }
-            .product-row.selected { background-color: #dbeafe; }
+            .product-row { 
+                cursor: pointer; 
+                transition: all 0.3s ease;
+                background: rgba(30, 30, 30, 0.8);
+            }
+            .product-row:hover { 
+                background: rgba(251, 146, 60, 0.1); 
+                transform: translateX(5px);
+            }
+            .product-row.selected { 
+                background: linear-gradient(90deg, rgba(251, 146, 60, 0.2) 0%, rgba(251, 146, 60, 0.1) 100%);
+                border-left: 4px solid #fb923c;
+            }
             .loading-spinner { animation: spin 1s linear infinite; }
             @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+            .infinity-logo {
+                background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                filter: drop-shadow(0 0 10px rgba(251, 146, 60, 0.5));
+            }
+            .status-connected {
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+            }
+            .form-input {
+                background: rgba(30, 30, 30, 0.8);
+                border: 1px solid rgba(251, 146, 60, 0.3);
+                color: #e0e0e0;
+            }
+            .form-input:focus {
+                border-color: #fb923c;
+                box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.1);
+            }
+            .modal-backdrop {
+                background: rgba(0, 0, 0, 0.8);
+                backdrop-filter: blur(5px);
+            }
+            .table-header {
+                background: linear-gradient(135deg, rgba(30, 30, 30, 0.95) 0%, rgba(45, 24, 16, 0.95) 100%);
+                border-bottom: 2px solid #fb923c;
+            }
         </style>
     </head>
-    <body class="bg-gray-100 min-h-screen">
+    <body class="min-h-screen">
         <div class="container mx-auto px-4 py-8">
             <!-- Header -->
             <div class="text-center py-8 mb-8">
-                <div class="flex items-center justify-center mb-4">
-                    <i class="fas fa-infinity text-green-600 text-4xl mr-3"></i>
-                    <h1 class="text-4xl font-bold text-gray-800">Infinity Bulk Manager</h1>
+                <!-- Logo with Infinity Symbol -->
+                <div class="flex items-center justify-center mb-6">
+                    <div class="bg-gradient-to-br from-orange-400 to-orange-600 p-3 rounded-xl shadow-lg mr-4">
+                        <i class="fas fa-infinity text-white text-3xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-4xl font-bold text-white mb-1">Infinity Bulk Manager</h1>
+                        <div class="text-orange-300 text-sm font-medium">Processamento ultra-rápido de produtos Shopify</div>
+                    </div>
                 </div>
-                <div class="text-gray-600 text-lg max-w-2xl mx-auto">
-                    <p class="mb-2">Gerencie produtos da sua loja Shopify em massa com poder infinito.</p>
-                    <p>Atualize preços, edite variantes e títulos de opções em milhares de produtos.</p>
-                </div>
-                <div id="connection-status" class="mt-4 hidden">
-                    <span class="bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
-                        <i class="fas fa-check-circle mr-2"></i>
-                        Conectado
-                    </span>
+                <div class="text-gray-300 text-lg max-w-2xl mx-auto">
+                    <p class="mb-2">Gerencie milhares de produtos simultaneamente com tecnologia de ponta</p>
+                    <div id="connection-status" class="mt-6 hidden">
+                        <span class="status-connected text-white px-6 py-3 rounded-full text-sm font-medium inline-flex items-center">
+                            <i class="fas fa-wifi mr-2"></i>
+                            Conectado a agenciainfinit
+                        </span>
+                    </div>
                 </div>
             </div>
 
             <!-- Connection Form -->
-            <div id="connection-form" class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">
-                    <i class="fas fa-plug mr-2"></i>
+            <div id="connection-form" class="dark-card rounded-xl shadow-2xl p-6 mb-6">
+                <h2 class="text-xl font-bold text-white mb-4">
+                    <i class="fas fa-plug mr-2 text-orange-400"></i>
                     Conectar à sua loja Shopify
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Nome da Loja (sem .myshopify.com)</label>
+                        <label class="block text-sm font-medium text-orange-300 mb-2">Nome da Loja (sem .myshopify.com)</label>
                         <input type="text" id="shop-name" placeholder="exemplo: minhaloja" 
-                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                               class="form-input w-full p-3 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Access Token</label>
+                        <label class="block text-sm font-medium text-orange-300 mb-2">Access Token</label>
                         <input type="password" id="access-token" placeholder="shpat_..."
-                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                               class="form-input w-full p-3 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all">
                     </div>
                 </div>
-                <button id="connect-btn" class="mt-4 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                <button id="connect-btn" class="mt-4 orange-btn text-white px-6 py-3 rounded-lg transition-all">
                     <i class="fas fa-plug mr-2"></i>
                     Conectar
                 </button>
-                <div id="connection-error" class="mt-4 p-3 bg-red-100 border border-red-300 rounded-lg text-red-700 hidden"></div>
+                <div id="connection-error" class="mt-4 p-3 bg-red-900 border border-red-500 rounded-lg text-red-300 hidden"></div>
             </div>
 
             <!-- Main Interface (hidden until connected) -->
             <div id="main-interface" class="hidden">
                 <!-- Main Controls -->
-                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                    <div class="flex flex-wrap items-center justify-center gap-2 mb-4">
-                        <button id="load-products-btn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
-                            <i class="fas fa-sync-alt mr-2"></i>
-                            Carregar Todos os Produtos
+                <div class="dark-card rounded-xl shadow-2xl p-6 mb-6">
+                    <div class="flex flex-wrap items-center justify-center gap-3 mb-4">
+                        <button id="load-products-btn" class="orange-btn text-white px-6 py-3 rounded-lg transition-all text-sm font-medium">
+                            <i class="fas fa-download mr-2"></i>
+                            Carregar Produtos
                         </button>
-                        <button id="select-all-btn" class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                        <button id="select-all-btn" class="dark-btn px-5 py-3 rounded-lg transition-all text-sm">
                             <i class="fas fa-check-square mr-1"></i>
                             Selecionar Todos
                         </button>
-                        <button id="clear-selection-btn" class="bg-gray-600 text-white px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors text-sm">
+                        <button id="clear-selection-btn" class="dark-btn px-5 py-3 rounded-lg transition-all text-sm">
                             <i class="fas fa-square mr-1"></i>
                             Limpar Seleção
                         </button>
-                        <button id="bulk-edit-btn" class="bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm" disabled>
+                        <button id="bulk-edit-btn" class="dark-btn px-5 py-3 rounded-lg transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                             <i class="fas fa-edit mr-1"></i>
-                            Edição em Massa
+                            Edição Massa
                         </button>
-                        <button id="variant-titles-btn" class="bg-orange-600 text-white px-3 py-2 rounded-lg hover:bg-orange-700 transition-colors text-sm">
+                        <button id="variant-titles-btn" class="orange-btn text-white px-5 py-3 rounded-lg transition-all text-sm">
                             <i class="fas fa-cogs mr-1"></i>
-                            Variantes e Opções
+                            Variantes Opções
                         </button>
                     </div>
-                    <div id="selection-info" class="text-sm text-gray-600"></div>
+                    <div id="selection-info" class="text-sm text-orange-200 text-center"></div>
                 </div>
 
                 <!-- Products Table -->
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div class="p-4 border-b border-gray-200">
-                        <h3 class="text-lg font-bold text-gray-800">
-                            <i class="fas fa-boxes mr-2"></i>
+                <div class="dark-card rounded-xl shadow-2xl overflow-hidden">
+                    <div class="p-4 border-b border-orange-500">
+                        <h3 class="text-lg font-bold text-white">
+                            <i class="fas fa-boxes mr-2 text-orange-400"></i>
                             Todos os Produtos
                         </h3>
-                        <div id="products-count" class="text-sm text-gray-600 mt-1"></div>
+                        <div id="products-count" class="text-sm text-orange-300 mt-1"></div>
                     </div>
                     <div id="loading" class="p-8 text-center hidden">
-                        <i class="fas fa-spinner loading-spinner text-blue-600 text-2xl"></i>
-                        <p class="text-gray-600 mt-2">Carregando produtos...</p>
+                        <i class="fas fa-spinner loading-spinner text-orange-400 text-2xl"></i>
+                        <p class="text-gray-300 mt-2">Carregando produtos...</p>
                     </div>
                     <div id="products-container" class="max-h-96 overflow-y-auto">
                         <table class="w-full">
-                            <thead class="bg-gray-50 sticky top-0">
+                            <thead class="table-header sticky top-0">
                                 <tr>
-                                    <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
-                                        <input type="checkbox" id="select-all-checkbox" class="checkbox-large">
+                                    <th class="p-3 text-left text-xs font-medium text-orange-300 uppercase tracking-wider w-12">
+                                        <input type="checkbox" id="select-all-checkbox" class="checkbox-large accent-orange-400">
                                     </th>
-                                    <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
-                                    <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço</th>
-                                    <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estoque</th>
-                                    <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variantes</th>
+                                    <th class="p-3 text-left text-xs font-medium text-orange-300 uppercase tracking-wider">Título</th>
+                                    <th class="p-3 text-left text-xs font-medium text-orange-300 uppercase tracking-wider">Preço</th>
+                                    <th class="p-3 text-left text-xs font-medium text-orange-300 uppercase tracking-wider">Estoque</th>
+                                    <th class="p-3 text-left text-xs font-medium text-orange-300 uppercase tracking-wider">Status</th>
+                                    <th class="p-3 text-left text-xs font-medium text-orange-300 uppercase tracking-wider">Variantes</th>
                                 </tr>
                             </thead>
-                            <tbody id="products-list" class="divide-y divide-gray-200">
+                            <tbody id="products-list" class="divide-y divide-gray-700">
                                 <!-- Products will be loaded here -->
                             </tbody>
                         </table>
                     </div>
                     
                     <!-- Filtro de Coleções - POSICIONADO EMBAIXO COMO COMBINADO -->
-                    <div id="collections-filter-section" class="border-t border-gray-200 p-4 bg-gray-50 hidden">
+                    <div id="collections-filter-section" class="border-t border-orange-500 p-4 bg-gradient-to-r from-gray-800 to-gray-900 hidden">
                         <div class="flex items-center justify-between gap-4">
                             <div class="flex items-center gap-3">
-                                <i class="fas fa-filter text-gray-600"></i>
-                                <label class="text-sm font-medium text-gray-700">Filtrar por coleção:</label>
-                                <select id="collection-filter" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm min-w-64">
+                                <i class="fas fa-filter text-orange-400"></i>
+                                <label class="text-sm font-medium text-orange-300">Filtrar por coleção:</label>
+                                <select id="collection-filter" class="form-input px-3 py-2 rounded-lg focus:ring-2 focus:ring-orange-400 text-sm min-w-64">
                                     <option value="">📦 Todas as coleções</option>
                                 </select>
                             </div>
-                            <div id="filter-info" class="text-xs text-gray-600"></div>
+                            <div id="filter-info" class="text-xs text-orange-200"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Bulk Edit Modal -->
-            <div id="bulk-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-                <div class="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-screen overflow-y-auto">
+            <div id="bulk-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50">
+                <div class="dark-card rounded-xl p-6 w-full max-w-4xl mx-4 max-h-screen overflow-y-auto">
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-2xl font-bold text-gray-800">
-                            <i class="fas fa-edit mr-2"></i>
+                        <h3 class="text-2xl font-bold text-white">
+                            <i class="fas fa-edit mr-2 text-orange-400"></i>
                             Edição em Massa
                         </h3>
-                        <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+                        <button id="close-modal" class="text-gray-400 hover:text-orange-400 transition-colors">
                             <i class="fas fa-times text-xl"></i>
                         </button>
                     </div>
@@ -2227,54 +2301,54 @@ app.get('/', (c) => {
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <!-- Basic Information -->
                             <div class="space-y-4">
-                                <h4 class="text-lg font-semibold text-gray-800 border-b pb-2">Informações Básicas</h4>
+                                <h4 class="text-lg font-semibold text-orange-300 border-b border-orange-500 pb-2">Informações Básicas</h4>
                                 
                                 <div>
                                     <label class="flex items-center mb-2">
                                         <input type="checkbox" id="enable-title" class="mr-2">
-                                        <span class="font-medium text-gray-700">Título do Produto</span>
+                                        <span class="font-medium text-orange-300">Título do Produto</span>
                                     </label>
-                                    <input type="text" id="bulk-title" class="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-100" disabled>
+                                    <input type="text" id="bulk-title" class="form-input w-full p-3 rounded-lg disabled:opacity-50" disabled>
                                 </div>
                                 
                                 <div>
                                     <label class="flex items-center mb-2">
                                         <input type="checkbox" id="enable-description" class="mr-2">
-                                        <span class="font-medium text-gray-700">Descrição</span>
+                                        <span class="font-medium text-orange-300">Descrição</span>
                                     </label>
-                                    <textarea id="bulk-description" rows="4" class="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-100" disabled></textarea>
+                                    <textarea id="bulk-description" rows="4" class="form-input w-full p-3 rounded-lg disabled:opacity-50" disabled></textarea>
                                 </div>
                                 
                                 <div>
                                     <label class="flex items-center mb-2">
-                                        <input type="checkbox" id="enable-vendor" class="mr-2">
-                                        <span class="font-medium text-gray-700">Fornecedor</span>
+                                        <input type="checkbox" id="enable-vendor" class="mr-2 accent-orange-400">
+                                        <span class="font-medium text-orange-300">Fornecedor</span>
                                     </label>
-                                    <input type="text" id="bulk-vendor" class="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-100" disabled>
+                                    <input type="text" id="bulk-vendor" class="form-input w-full p-3 rounded-lg disabled:opacity-50" disabled>
                                 </div>
                                 
                                 <div>
                                     <label class="flex items-center mb-2">
-                                        <input type="checkbox" id="enable-product-type" class="mr-2">
-                                        <span class="font-medium text-gray-700">Tipo de Produto</span>
+                                        <input type="checkbox" id="enable-product-type" class="mr-2 accent-orange-400">
+                                        <span class="font-medium text-orange-300">Tipo de Produto</span>
                                     </label>
-                                    <input type="text" id="bulk-product-type" class="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-100" disabled>
+                                    <input type="text" id="bulk-product-type" class="form-input w-full p-3 rounded-lg disabled:opacity-50" disabled>
                                 </div>
                                 
                                 <div>
                                     <label class="flex items-center mb-2">
-                                        <input type="checkbox" id="enable-tags" class="mr-2">
-                                        <span class="font-medium text-gray-700">Tags (separadas por vírgula)</span>
+                                        <input type="checkbox" id="enable-tags" class="mr-2 accent-orange-400">
+                                        <span class="font-medium text-orange-300">Tags (separadas por vírgula)</span>
                                     </label>
-                                    <input type="text" id="bulk-tags" class="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-100" disabled>
+                                    <input type="text" id="bulk-tags" class="form-input w-full p-3 rounded-lg disabled:opacity-50" disabled>
                                 </div>
                                 
                                 <div>
                                     <label class="flex items-center mb-2">
-                                        <input type="checkbox" id="enable-status" class="mr-2">
-                                        <span class="font-medium text-gray-700">Status</span>
+                                        <input type="checkbox" id="enable-status" class="mr-2 accent-orange-400">
+                                        <span class="font-medium text-orange-300">Status</span>
                                     </label>
-                                    <select id="bulk-status" class="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-100" disabled>
+                                    <select id="bulk-status" class="form-input w-full p-3 rounded-lg disabled:opacity-50" disabled>
                                         <option value="active">Ativo</option>
                                         <option value="draft">Rascunho</option>
                                         <option value="archived">Arquivado</option>
@@ -2284,54 +2358,54 @@ app.get('/', (c) => {
                             
                             <!-- Pricing and Inventory -->
                             <div class="space-y-4">
-                                <h4 class="text-lg font-semibold text-gray-800 border-b pb-2">Preços e Estoque</h4>
+                                <h4 class="text-lg font-semibold text-orange-300 border-b border-orange-500 pb-2">Preços e Estoque</h4>
                                 
                                 <div>
                                     <label class="flex items-center mb-2">
                                         <input type="checkbox" id="enable-price" class="mr-2">
-                                        <span class="font-medium text-gray-700">Preço</span>
+                                        <span class="font-medium text-orange-300">Preço</span>
                                     </label>
-                                    <input type="number" id="bulk-price" step="0.01" class="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-100" disabled>
+                                    <input type="number" id="bulk-price" step="0.01" class="form-input w-full p-3 rounded-lg disabled:opacity-50" disabled>
                                 </div>
                                 
                                 <div>
                                     <label class="flex items-center mb-2">
-                                        <input type="checkbox" id="enable-compare-price" class="mr-2">
-                                        <span class="font-medium text-gray-700">Preço de Comparação</span>
+                                        <input type="checkbox" id="enable-compare-price" class="mr-2 accent-orange-400">
+                                        <span class="font-medium text-orange-300">Preço de Comparação</span>
                                     </label>
-                                    <input type="number" id="bulk-compare-price" step="0.01" class="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-100" disabled>
+                                    <input type="number" id="bulk-compare-price" step="0.01" class="form-input w-full p-3 rounded-lg disabled:opacity-50" disabled>
                                 </div>
                                 
                                 <div>
                                     <label class="flex items-center mb-2">
-                                        <input type="checkbox" id="enable-inventory" class="mr-2">
-                                        <span class="font-medium text-gray-700">Quantidade em Estoque</span>
+                                        <input type="checkbox" id="enable-inventory" class="mr-2 accent-orange-400">
+                                        <span class="font-medium text-orange-300">Quantidade em Estoque</span>
                                     </label>
-                                    <input type="number" id="bulk-inventory" class="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-100" disabled>
+                                    <input type="number" id="bulk-inventory" class="form-input w-full p-3 rounded-lg disabled:opacity-50" disabled>
                                 </div>
                                 
                                 <div>
                                     <label class="flex items-center mb-2">
-                                        <input type="checkbox" id="enable-sku" class="mr-2">
-                                        <span class="font-medium text-gray-700">SKU</span>
+                                        <input type="checkbox" id="enable-sku" class="mr-2 accent-orange-400">
+                                        <span class="font-medium text-orange-300">SKU</span>
                                     </label>
-                                    <input type="text" id="bulk-sku" class="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-100" disabled>
+                                    <input type="text" id="bulk-sku" class="form-input w-full p-3 rounded-lg disabled:opacity-50" disabled>
                                 </div>
                                 
                                 <div>
                                     <label class="flex items-center mb-2">
-                                        <input type="checkbox" id="enable-weight" class="mr-2">
-                                        <span class="font-medium text-gray-700">Peso (kg)</span>
+                                        <input type="checkbox" id="enable-weight" class="mr-2 accent-orange-400">
+                                        <span class="font-medium text-orange-300">Peso (kg)</span>
                                     </label>
-                                    <input type="number" id="bulk-weight" step="0.001" class="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-100" disabled>
+                                    <input type="number" id="bulk-weight" step="0.001" class="form-input w-full p-3 rounded-lg disabled:opacity-50" disabled>
                                 </div>
                                 
                                 <div>
                                     <label class="flex items-center mb-2">
-                                        <input type="checkbox" id="enable-track-inventory" class="mr-2">
-                                        <span class="font-medium text-gray-700">Rastrear Estoque</span>
+                                        <input type="checkbox" id="enable-track-inventory" class="mr-2 accent-orange-400">
+                                        <span class="font-medium text-orange-300">Rastrear Estoque</span>
                                     </label>
-                                    <select id="bulk-track-inventory" class="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-100" disabled>
+                                    <select id="bulk-track-inventory" class="form-input w-full p-3 rounded-lg disabled:opacity-50" disabled>
                                         <option value="true">Sim</option>
                                         <option value="false">Não</option>
                                     </select>
@@ -2340,32 +2414,32 @@ app.get('/', (c) => {
                         </div>
                         
                         <!-- SEO Section -->
-                        <div class="border-t pt-6">
-                            <h4 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">SEO</h4>
+                        <div class="border-t border-orange-500 pt-6">
+                            <h4 class="text-lg font-semibold text-orange-300 border-b border-orange-500 pb-2 mb-4">SEO</h4>
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                 <div>
                                     <label class="flex items-center mb-2">
-                                        <input type="checkbox" id="enable-seo-title" class="mr-2">
-                                        <span class="font-medium text-gray-700">Título SEO</span>
+                                        <input type="checkbox" id="enable-seo-title" class="mr-2 accent-orange-400">
+                                        <span class="font-medium text-orange-300">Título SEO</span>
                                     </label>
-                                    <input type="text" id="bulk-seo-title" class="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-100" disabled>
+                                    <input type="text" id="bulk-seo-title" class="form-input w-full p-3 rounded-lg disabled:opacity-50" disabled>
                                 </div>
                                 
                                 <div>
                                     <label class="flex items-center mb-2">
-                                        <input type="checkbox" id="enable-seo-description" class="mr-2">
-                                        <span class="font-medium text-gray-700">Descrição SEO</span>
+                                        <input type="checkbox" id="enable-seo-description" class="mr-2 accent-orange-400">
+                                        <span class="font-medium text-orange-300">Descrição SEO</span>
                                     </label>
-                                    <textarea id="bulk-seo-description" rows="3" class="w-full p-3 border border-gray-300 rounded-lg disabled:bg-gray-100" disabled></textarea>
+                                    <textarea id="bulk-seo-description" rows="3" class="form-input w-full p-3 rounded-lg disabled:opacity-50" disabled></textarea>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="flex justify-end space-x-4 border-t pt-6">
-                            <button type="button" id="cancel-bulk" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors">
+                        <div class="flex justify-end space-x-4 border-t border-orange-500 pt-6">
+                            <button type="button" id="cancel-bulk" class="dark-btn px-6 py-3 rounded-lg transition-all">
                                 Cancelar
                             </button>
-                            <button type="submit" id="apply-bulk" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
+                            <button type="submit" id="apply-bulk" class="orange-btn text-white px-6 py-3 rounded-lg transition-all">
                                 <i class="fas fa-save mr-2"></i>
                                 Aplicar Alterações
                             </button>
@@ -2375,73 +2449,73 @@ app.get('/', (c) => {
             </div>
 
             <!-- Advanced Variant Management Modal -->
-            <div id="variant-titles-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-                <div class="bg-white rounded-lg p-6 w-full max-w-6xl mx-4 max-h-screen overflow-y-auto">
+            <div id="variant-titles-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50">
+                <div class="dark-card rounded-xl p-6 w-full max-w-6xl mx-4 max-h-screen overflow-y-auto">
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-2xl font-bold text-gray-800">
-                            <i class="fas fa-cogs mr-2"></i>
+                        <h3 class="text-2xl font-bold text-white">
+                            <i class="fas fa-cogs mr-2 text-orange-400"></i>
                             Variantes e Opções - Gerenciamento Avançado
                         </h3>
-                        <button id="close-variant-titles-modal" class="text-gray-500 hover:text-gray-700">
+                        <button id="close-variant-titles-modal" class="text-gray-400 hover:text-orange-400 transition-colors">
                             <i class="fas fa-times text-xl"></i>
                         </button>
                     </div>
                     
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <h4 class="font-bold text-blue-800 mb-2">
+                        <div class="bg-gradient-to-br from-orange-900 to-orange-800 border border-orange-400 rounded-lg p-4">
+                            <h4 class="font-bold text-orange-200 mb-2">
                                 <i class="fas fa-edit mr-2"></i>Renomear Títulos de Opções
                             </h4>
-                            <p class="text-blue-700 text-sm mb-3">
+                            <p class="text-orange-300 text-sm mb-3">
                                 Altere os nomes das opções (ex: "Size" → "Tamanho") em todos os produtos.
                             </p>
                             
                             <!-- Seletor de Escopo para Carregamento -->
                             <div class="mb-4">
-                                <h5 class="text-sm font-medium text-blue-800 mb-2">Carregar variantes de:</h5>
+                                <h5 class="text-sm font-medium text-orange-200 mb-2">Carregar variantes de:</h5>
                                 <div class="space-y-2">
                                     <label class="flex items-center text-sm">
-                                        <input type="radio" name="load-scope" value="all" id="load-scope-all" class="mr-2" checked>
-                                        <span>Todos os produtos da loja</span>
+                                        <input type="radio" name="load-scope" value="all" id="load-scope-all" class="mr-2 accent-orange-400" checked>
+                                        <span class="text-orange-300">Todos os produtos da loja</span>
                                     </label>
                                     <label class="flex items-center text-sm">
-                                        <input type="radio" name="load-scope" value="selected" id="load-scope-selected" class="mr-2">
-                                        <span id="load-scope-selected-text">Apenas produtos selecionados (0 produtos)</span>
+                                        <input type="radio" name="load-scope" value="selected" id="load-scope-selected" class="mr-2 accent-orange-400">
+                                        <span id="load-scope-selected-text" class="text-orange-300">Apenas produtos selecionados (0 produtos)</span>
                                     </label>
                                 </div>
                             </div>
                             
-                            <button id="load-variant-data-btn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+                            <button id="load-variant-data-btn" class="orange-btn text-white px-4 py-2 rounded-lg text-sm transition-all">
                                 <i class="fas fa-search mr-2"></i>
                                 Carregar Variantes Existentes
                             </button>
                         </div>
                         
-                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                            <h4 class="font-bold text-green-800 mb-2">
+                        <div class="bg-gradient-to-br from-green-900 to-green-800 border border-green-400 rounded-lg p-4">
+                            <h4 class="font-bold text-green-200 mb-2">
                                 <i class="fas fa-dollar-sign mr-2"></i>Editar Valores e Preços
                             </h4>
-                            <p class="text-green-700 text-sm mb-3">
+                            <p class="text-green-300 text-sm mb-3">
                                 Altere valores das opções e adicione preços extras por variante.
                             </p>
-                            <div class="text-xs text-green-600">
+                            <div class="text-xs text-green-400">
                                 Disponível após carregar variantes existentes
                             </div>
                         </div>
                     </div>
                     
                     <div id="loading-variants" class="text-center py-8 hidden">
-                        <i class="fas fa-spinner loading-spinner text-blue-600 text-2xl"></i>
-                        <p class="text-gray-600 mt-2">Analisando variantes dos produtos...</p>
+                        <i class="fas fa-spinner loading-spinner text-orange-400 text-2xl"></i>
+                        <p class="text-gray-300 mt-2">Analisando variantes dos produtos...</p>
                     </div>
                     
                     <div id="variant-data-container" class="hidden">
                         <!-- Tab Navigation -->
-                        <div class="flex border-b border-gray-200 mb-6">
-                            <button id="tab-titles" class="px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-600 bg-blue-50">
+                        <div class="flex border-b border-orange-500 mb-6">
+                            <button id="tab-titles" class="px-4 py-2 text-sm font-medium text-orange-400 border-b-2 border-orange-400 bg-gradient-to-r from-orange-900 to-orange-800">
                                 <i class="fas fa-tags mr-2"></i>Títulos das Opções
                             </button>
-                            <button id="tab-values" class="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
+                            <button id="tab-values" class="px-4 py-2 text-sm font-medium text-gray-400 hover:text-orange-300 transition-colors">
                                 <i class="fas fa-list mr-2"></i>Valores e Preços
                             </button>
                         </div>
@@ -2461,12 +2535,12 @@ app.get('/', (c) => {
                         </div>
                     </div>
                     
-                    <div class="border-t pt-6 mt-6">
+                    <div class="border-t border-orange-500 pt-6 mt-6">
                         <div class="flex justify-end space-x-4">
-                            <button id="cancel-variant-titles" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors">
+                            <button id="cancel-variant-titles" class="dark-btn px-6 py-3 rounded-lg transition-all">
                                 Cancelar
                             </button>
-                            <button id="apply-variant-changes" class="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors hidden">
+                            <button id="apply-variant-changes" class="orange-btn text-white px-6 py-3 rounded-lg transition-all hidden">
                                 <i class="fas fa-magic mr-2"></i>
                                 Aplicar Alterações
                             </button>
@@ -2476,18 +2550,18 @@ app.get('/', (c) => {
             </div>
 
             <!-- Results Modal -->
-            <div id="results-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-                <div class="bg-white rounded-lg p-6 w-full max-w-4xl mx-4 max-h-screen overflow-y-auto">
+            <div id="results-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50">
+                <div class="dark-card rounded-xl p-6 w-full max-w-4xl mx-4 max-h-screen overflow-y-auto">
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-bold text-gray-800">
-                            <i class="fas fa-chart-bar mr-2"></i>
+                        <h3 class="text-xl font-bold text-white">
+                            <i class="fas fa-chart-bar mr-2 text-orange-400"></i>
                             Resultados da Atualização em Massa
                         </h3>
-                        <button id="close-results-modal" class="text-gray-500 hover:text-gray-700">
+                        <button id="close-results-modal" class="text-gray-400 hover:text-orange-400 transition-colors">
                             <i class="fas fa-times text-xl"></i>
                         </button>
                     </div>
-                    <div id="results-content">
+                    <div id="results-content" class="text-gray-300">
                         <!-- Results will be shown here -->
                     </div>
                 </div>
