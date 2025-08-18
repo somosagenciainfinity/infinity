@@ -717,7 +717,8 @@ class InfinityBulkManager {
             status: 'Iniciando processamento em massa...'
         };
         
-        // Removed "Ver Detalhes" button system
+        // Create "Ver Detalhes" button
+        this.createVerDetalhesButton('apply-bulk');
         
         try {
             const response = await fetch('/api/bulk-update', {
@@ -736,15 +737,31 @@ class InfinityBulkManager {
             const data = await response.json();
             
             if (response.ok) {
+                // Enhanced feedback with mass processing details
+                console.log('🚀 BULK UPDATE RESPONSE:', data);
+                
                 // Update progress with final results
                 this.progressData.updated = data.successful || 0;
                 this.progressData.failed = data.failed || 0;
-                this.progressData.unchanged = Math.max(0, totalProducts - this.progressData.updated - this.progressData.failed);
-                this.progressData.analyzed = totalProducts;
-                this.progressData.status = 'Processamento concluído!';
+                this.progressData.totalProcessed = data.totalProcessed || totalProducts;
+                this.progressData.unchanged = Math.max(0, this.progressData.totalProcessed - this.progressData.updated - this.progressData.failed);
+                this.progressData.analyzed = this.progressData.totalProcessed;
+                
+                // Enhanced status with performance info
+                if (data.massProcessingUsed) {
+                    const throughput = data.throughput ? ` (${data.throughput.toFixed(1)} produtos/s)` : '';
+                    const processingTime = data.processingTime ? ` em ${(data.processingTime/1000).toFixed(1)}s` : '';
+                    this.progressData.status = `✅ Processamento em massa concluído${processingTime}${throughput}`;
+                } else {
+                    this.progressData.status = 'Processamento concluído!';
+                }
                 
                 this.closeBulkModal();
-                this.showResults(data);
+                this.showEnhancedResults(data);
+                
+                // Enhanced success message
+                const performanceMsg = data.throughput ? ` (${data.throughput.toFixed(1)} produtos/segundo)` : '';
+                this.showSuccess(`🚀 PROCESSAMENTO ULTRA-RÁPIDO: ${data.successful}/${data.totalProcessed} produtos atualizados${performanceMsg}`);
                 
                 // Remove auto-reload - let user manually refresh if needed
                 // Products will stay visible after editing
@@ -820,6 +837,120 @@ class InfinityBulkManager {
                             `;
                         }).join('')}
                     </div>
+                </div>
+            ` : ''}
+        `;
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    showEnhancedResults(data) {
+        const modal = document.getElementById('results-modal');
+        const content = document.getElementById('results-content');
+        
+        const successCount = data.successful || 0;
+        const failCount = data.failed || 0;
+        const totalProcessed = data.totalProcessed || (successCount + failCount);
+        const failedToLoad = data.failedToLoad || 0;
+        
+        // Performance metrics
+        const throughput = data.throughput || 0;
+        const processingTime = data.processingTime || 0;
+        const successRate = data.successRate || (totalProcessed > 0 ? (successCount / totalProcessed * 100) : 0);
+        
+        content.innerHTML = `
+            <div class="mb-6">
+                <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-4 mb-4">
+                    <h3 class="text-lg font-bold mb-2">
+                        <i class="fas fa-rocket mr-2"></i>
+                        Processamento em Massa Ultra-Rápido ${data.massProcessingUsed ? '(OTIMIZADO)' : ''}
+                    </h3>
+                    ${processingTime > 0 ? `
+                    <div class="flex justify-between items-center text-sm opacity-90">
+                        <span>⏱️ Tempo: ${(processingTime/1000).toFixed(1)}s</span>
+                        ${throughput > 0 ? `<span>⚡ Velocidade: ${throughput.toFixed(1)} produtos/s</span>` : ''}
+                        <span>🎯 Taxa de sucesso: ${successRate.toFixed(1)}%</span>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <div class="grid grid-cols-4 gap-4 mb-4">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-blue-600">${totalProcessed}</div>
+                        <div class="text-sm text-blue-600">Processados</div>
+                    </div>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-green-600">${successCount}</div>
+                        <div class="text-sm text-green-600">Sucessos</div>
+                    </div>
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-red-600">${failCount}</div>
+                        <div class="text-sm text-red-600">Falhas</div>
+                    </div>
+                    ${failedToLoad > 0 ? `
+                    <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-orange-600">${failedToLoad}</div>
+                        <div class="text-sm text-orange-600">Não Carregados</div>
+                    </div>
+                    ` : `
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-gray-600">${Math.max(0, totalProcessed - successCount - failCount)}</div>
+                        <div class="text-sm text-gray-600">Sem Alteração</div>
+                    </div>
+                    `}
+                </div>
+                
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-gray-700">Progresso</span>
+                        <span class="text-sm text-gray-600">${successCount}/${totalProcessed}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div class="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-300" 
+                             style="width: ${totalProcessed > 0 ? (successCount/totalProcessed)*100 : 0}%"></div>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1 text-center">
+                        ${successRate.toFixed(1)}% de sucesso
+                    </div>
+                </div>
+            </div>
+            
+            ${data.results && data.results.length > 0 ? `
+                <div class="max-h-64 overflow-y-auto">
+                    <h4 class="font-medium text-gray-800 mb-3 flex items-center">
+                        <i class="fas fa-list mr-2"></i>
+                        Detalhes (${data.results.length} produtos):
+                    </h4>
+                    <div class="space-y-2">
+                        ${data.results.map(result => {
+                            const product = this.allProducts.find(p => p.id.toString() === result.id.toString());
+                            const productTitle = product ? product.title.substring(0, 50) : `ID: ${result.id}`;
+                            return `
+                            <div class="flex items-center justify-between p-3 rounded transition-colors hover:bg-gray-50 ${result.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}">
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-sm font-medium text-gray-800 truncate">${productTitle}</div>
+                                    <div class="text-xs text-gray-500">ID: ${result.id}</div>
+                                </div>
+                                <div class="flex-shrink-0 ml-4">
+                                    ${result.success ? 
+                                        '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800"><i class="fas fa-check mr-1"></i>Sucesso</span>' : 
+                                        `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800" title="${result.error}"><i class="fas fa-times mr-1"></i>Erro</span>`
+                                    }
+                                </div>
+                            </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            ` : ''}
+            
+            ${data.massProcessingUsed ? `
+                <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p class="text-sm text-blue-800">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <strong>Processamento Otimizado:</strong> Utilizou chunks paralelos para máxima velocidade e eficiência.
+                    </p>
                 </div>
             ` : ''}
         `;
@@ -1169,7 +1300,8 @@ class InfinityBulkManager {
         
         this.currentOperation = operationType;
         
-        // Removed "Ver Detalhes" button system
+        // Create "Ver Detalhes" button
+        this.createVerDetalhesButton('apply-variant-changes');
         
         try {
             // Use the same scope that was used for loading variants
@@ -1750,8 +1882,47 @@ class InfinityBulkManager {
         }
     }
 
-    // REMOVED: createVerDetalhesButton and removeVerDetalhesButton functions
-    // No longer creating "Ver Detalhes" buttons
+    createVerDetalhesButton(targetButtonId) {
+        // CORREÇÃO: Remove botão existente se houver
+        this.removeVerDetalhesButton();
+        
+        const targetButton = document.getElementById(targetButtonId);
+        if (!targetButton) return;
+        
+        // Create "Ver Detalhes" button
+        const verDetalhesBtn = document.createElement('button');
+        verDetalhesBtn.id = 'ver-detalhes-btn';
+        verDetalhesBtn.type = 'button';
+        verDetalhesBtn.className = 'ml-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors';
+        verDetalhesBtn.innerHTML = '<i class="fas fa-chart-line mr-2"></i>Ver Detalhes';
+        
+        // CORREÇÃO: Armazena a referência do handler para remoção posterior
+        this.verDetalhesHandler = () => {
+            if (this.currentOperation) {
+                this.showProgressModal(
+                    this.getProgressTitle(this.currentOperation),
+                    this.currentOperation
+                );
+            }
+        };
+        
+        verDetalhesBtn.addEventListener('click', this.verDetalhesHandler);
+        
+        // Insert after target button
+        targetButton.parentNode.insertBefore(verDetalhesBtn, targetButton.nextSibling);
+    }
+
+    removeVerDetalhesButton() {
+        const btn = document.getElementById('ver-detalhes-btn');
+        if (btn) {
+            // CORREÇÃO: Remove o event listener antes de remover o botão
+            if (this.verDetalhesHandler) {
+                btn.removeEventListener('click', this.verDetalhesHandler);
+                this.verDetalhesHandler = null;
+            }
+            btn.remove();
+        }
+    }
 
     getProgressTitle(operation) {
         switch (operation) {

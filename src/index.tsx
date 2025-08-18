@@ -537,7 +537,133 @@ async function bulkUpdateProducts(shop: string, accessToken: string, products: a
   return results
 }
 
-// OPTIMIZED Mass Processing Function\nasync function massProcessProducts(shop: string, accessToken: string, products: any[], updateFunction: (chunk: any[]) => Promise<any[]>) {\n  const { chunkSize, maxChunks, chunkDelay } = RATE_LIMITS.concurrent\n  const chunks = chunkArray(products, chunkSize)\n  const allResults: any[] = []\n  \n  let totalProcessed = 0\n  let totalSuccessful = 0\n  let totalFailed = 0\n  \n  console.log(`🚀 MASS PROCESSING: ${products.length} products in ${chunks.length} chunks`)\n  \n  for (let i = 0; i < chunks.length; i += maxChunks) {\n    const chunkBatch = chunks.slice(i, i + maxChunks)\n    const batchPromises = chunkBatch.map(async (chunk) => {\n      try {\n        const chunkResults = await updateFunction(chunk)\n        const successful = chunkResults.filter((r: any) => r.success).length\n        const failed = chunkResults.filter((r: any) => !r.success).length\n        return { results: chunkResults, successful, failed }\n      } catch (error) {\n        return {\n          results: chunk.map((item: any) => ({ id: item.id, success: false, error: 'Processing failed' })),\n          successful: 0,\n          failed: chunk.length\n        }\n      }\n    })\n    \n    const batchResults = await Promise.allSettled(batchPromises)\n    batchResults.forEach((result) => {\n      if (result.status === 'fulfilled') {\n        const { results, successful, failed } = result.value\n        allResults.push(...results)\n        totalSuccessful += successful\n        totalFailed += failed\n        totalProcessed += results.length\n      }\n    })\n    \n    if (i + maxChunks < chunks.length) {\n      await delay(chunkDelay)\n    }\n  }\n  \n  return { results: allResults, totalProcessed, totalSuccessful, totalFailed }\n}\n\n// API Routes
+// ULTRA-OPTIMIZED Mass Processing Function with enhanced error handling and progress tracking
+async function massProcessProducts(shop: string, accessToken: string, products: any[], updateFunction: (chunk: any[]) => Promise<any[]>) {
+  const { chunkSize, maxChunks, chunkDelay } = RATE_LIMITS.concurrent
+  const chunks = chunkArray(products, chunkSize)
+  const allResults: any[] = []
+  
+  let totalProcessed = 0
+  let totalSuccessful = 0
+  let totalFailed = 0
+  const startTime = Date.now()
+  
+  console.log(`🚀 ULTRA MASS PROCESSING STARTED`)
+  console.log(`📊 Target: ${products.length} products`)
+  console.log(`⚡ Strategy: ${chunks.length} chunks, ${chunkSize} products per chunk, ${maxChunks} chunks in parallel`)
+  console.log(`⏱️ Expected time: ~${Math.ceil(chunks.length / maxChunks) * (chunkDelay / 1000)} seconds`)
+  
+  // Process chunks in parallel batches
+  for (let batchIndex = 0; batchIndex < chunks.length; batchIndex += maxChunks) {
+    const chunkBatch = chunks.slice(batchIndex, batchIndex + maxChunks)
+    const batchNumber = Math.floor(batchIndex / maxChunks) + 1
+    const totalBatches = Math.ceil(chunks.length / maxChunks)
+    
+    console.log(`🔥 Processing batch ${batchNumber}/${totalBatches} (${chunkBatch.length} chunks in parallel)`)
+    
+    const batchStartTime = Date.now()
+    const batchPromises = chunkBatch.map(async (chunk, chunkIndex) => {
+      const globalChunkIndex = batchIndex + chunkIndex + 1
+      try {
+        console.log(`⚡ Chunk ${globalChunkIndex}/${chunks.length}: Processing ${chunk.length} products...`)
+        const chunkResults = await updateFunction(chunk)
+        const successful = chunkResults.filter((r: any) => r.success).length
+        const failed = chunkResults.filter((r: any) => !r.success).length
+        
+        console.log(`✅ Chunk ${globalChunkIndex}/${chunks.length}: ${successful} successful, ${failed} failed`)
+        return { results: chunkResults, successful, failed, chunkIndex: globalChunkIndex }
+      } catch (error) {
+        console.error(`❌ Chunk ${globalChunkIndex}/${chunks.length} FAILED:`, error)
+        return {
+          results: chunk.map((item: any) => ({ 
+            id: item.id, 
+            success: false, 
+            error: `Chunk processing failed: ${error instanceof Error ? error.message : 'Unknown error'}` 
+          })),
+          successful: 0,
+          failed: chunk.length,
+          chunkIndex: globalChunkIndex
+        }
+      }
+    })
+    
+    const batchResults = await Promise.allSettled(batchPromises)
+    
+    // Process batch results
+    let batchSuccessful = 0
+    let batchFailed = 0
+    let batchProcessed = 0
+    
+    batchResults.forEach((result) => {
+      if (result.status === 'fulfilled') {
+        const { results, successful, failed } = result.value
+        allResults.push(...results)
+        totalSuccessful += successful
+        totalFailed += failed
+        totalProcessed += results.length
+        batchSuccessful += successful
+        batchFailed += failed
+        batchProcessed += results.length
+      } else {
+        console.error(`❌ Batch promise rejected:`, result.reason)
+      }
+    })
+    
+    const batchTime = Date.now() - batchStartTime
+    const overallProgress = ((batchIndex + chunkBatch.length) / chunks.length * 100).toFixed(1)
+    
+    console.log(`🎯 Batch ${batchNumber}/${totalBatches} completed in ${batchTime}ms`)
+    console.log(`📊 Batch stats: ${batchProcessed} processed, ${batchSuccessful} successful, ${batchFailed} failed`)
+    console.log(`🚀 Overall progress: ${overallProgress}% (${totalProcessed}/${products.length} products)`)
+    
+    // Delay between batches (except for the last one)
+    if (batchIndex + maxChunks < chunks.length) {
+      console.log(`⏸️ Waiting ${chunkDelay}ms before next batch...`)
+      await delay(chunkDelay)
+    }
+  }
+  
+  const totalTime = Date.now() - startTime
+  const successRate = ((totalSuccessful / totalProcessed) * 100).toFixed(1)
+  
+  console.log(`🎉 ULTRA MASS PROCESSING COMPLETED!`)
+  console.log(`⏱️ Total time: ${totalTime}ms (${(totalTime/1000).toFixed(1)}s)`)
+  console.log(`📊 Final results: ${totalProcessed} processed, ${totalSuccessful} successful, ${totalFailed} failed`)
+  console.log(`🎯 Success rate: ${successRate}%`)
+  console.log(`⚡ Performance: ${(totalProcessed / (totalTime / 1000)).toFixed(1)} products/second`)
+  
+  return { 
+    results: allResults, 
+    totalProcessed, 
+    totalSuccessful, 
+    totalFailed,
+    processingTime: totalTime,
+    successRate: parseFloat(successRate),
+    throughput: totalProcessed / (totalTime / 1000)
+  }
+}
+
+// API Routes
+
+// Get operation progress - for real-time monitoring
+app.get('/api/progress/:operationId', async (c) => {
+  const operationId = c.req.param('operationId')
+  
+  if (!operationId) {
+    return c.json({ error: 'Operation ID required' }, 400)
+  }
+  
+  const progress = activeOperations.get(operationId)
+  
+  if (!progress) {
+    return c.json({ error: 'Operation not found' }, 404)
+  }
+  
+  return c.json({
+    progress,
+    isActive: progress.status !== 'completed' && progress.status !== 'failed'
+  })
+})
 
 // Test connection
 app.post('/api/test-connection', async (c) => {
@@ -1209,23 +1335,65 @@ app.post('/api/bulk-update', async (c) => {
       return c.json({ error: 'Rate limit exceeded for bulk operations' }, 429)
     }
     
-    // Get full product data first
+    // Get full product data first - OPTIMIZED batch loading
+    console.log(`🚀 MASS PROCESSING: Loading ${productIds.length} products...`)
     const products: any[] = []
-    for (const id of productIds) {
-      try {
-        const response = await shopifyRequest(shop, accessToken, `products/${id}.json`)
-        products.push(response.product)
-      } catch (error) {
-        console.error(`Error fetching product ${id}:`, error)
+    const failedToLoad: string[] = []
+    
+    // Process in smaller chunks to avoid timeouts
+    const ID_CHUNK_SIZE = 50
+    for (let i = 0; i < productIds.length; i += ID_CHUNK_SIZE) {
+      const chunk = productIds.slice(i, i + ID_CHUNK_SIZE)
+      console.log(`📦 Loading products chunk ${Math.floor(i/ID_CHUNK_SIZE) + 1}/${Math.ceil(productIds.length/ID_CHUNK_SIZE)}`)
+      
+      const chunkPromises = chunk.map(async (id: string) => {
+        try {
+          const response = await shopifyRequest(shop, accessToken, `products/${id}.json`)
+          return response.product
+        } catch (error) {
+          console.error(`Error fetching product ${id}:`, error)
+          failedToLoad.push(id)
+          return null
+        }
+      })
+      
+      const chunkResults = await Promise.allSettled(chunkPromises)
+      chunkResults.forEach((result) => {
+        if (result.status === 'fulfilled' && result.value) {
+          products.push(result.value)
+        }
+      })
+      
+      // Small delay between chunks
+      if (i + ID_CHUNK_SIZE < productIds.length) {
+        await delay(100)
       }
     }
     
-    const results = await bulkUpdateProducts(shop, accessToken, products, updates)
+    console.log(`✅ Successfully loaded ${products.length} products, ${failedToLoad.length} failed`)
+    
+    if (products.length === 0) {
+      return c.json({ 
+        error: 'Nenhum produto foi carregado com sucesso',
+        failedToLoad 
+      }, 400)
+    }
+    
+    // Use MASS PROCESSING function instead of sequential processing
+    console.log(`🚀 Starting MASS PROCESSING for ${products.length} products...`)
+    const massResults = await massProcessProducts(shop, accessToken, products, async (chunk: any[]) => {
+      return await bulkUpdateProducts(shop, accessToken, chunk, updates)
+    })
+    
+    console.log(`🎉 MASS PROCESSING COMPLETE: ${massResults.totalProcessed} processed, ${massResults.totalSuccessful} successful, ${massResults.totalFailed} failed`)
     
     return c.json({ 
-      results,
-      successful: results.filter(r => r.success).length,
-      failed: results.filter(r => !r.success).length
+      results: massResults.results,
+      successful: massResults.totalSuccessful,
+      failed: massResults.totalFailed,
+      totalProcessed: massResults.totalProcessed,
+      failedToLoad: failedToLoad.length,
+      massProcessingUsed: true
     })
   } catch (error) {
     return c.json({ 
@@ -1259,20 +1427,20 @@ app.post('/api/analyze-variants', async (c) => {
     console.log(`⚡ ULTRA-FAST VARIANT ANALYSIS STARTING`)
     const startTime = Date.now()
     
-    // SPEED: Get products with optimized loading
+    // SPEED: Get products with optimized loading - REMOVED ARTIFICIAL LIMITS
     let productsToAnalyze = []
     if (scope === 'selected') {
-      // SPEED: Only get products we already have in cache or load minimal set
-      const allProducts = await getAllProducts(shop, accessToken, 500) // Limit for speed
+      // SPEED: Load all products but filter only selected ones
+      const allProducts = await getAllProducts(shop, accessToken) // NO LIMIT - get all products
       const selectedSet = new Set(selectedProductIds.map(id => id.toString()))
       productsToAnalyze = allProducts.filter(product => 
         selectedSet.has(product.id.toString())
       )
-      console.log(`⚡ Selected products filtered: ${productsToAnalyze.length} products`)
+      console.log(`⚡ Selected products filtered: ${productsToAnalyze.length} products from ${allProducts.length} total`)
     } else {
-      // SPEED: Use cached products if available, otherwise load with limit
-      productsToAnalyze = await getAllProducts(shop, accessToken, 1000) // Reasonable limit
-      console.log(`⚡ All products loaded: ${productsToAnalyze.length} products`)
+      // SPEED: Load ALL products without limits for complete analysis
+      productsToAnalyze = await getAllProducts(shop, accessToken) // NO LIMIT - process ALL products
+      console.log(`⚡ All products loaded: ${productsToAnalyze.length} products (COMPLETE SET)`)
     }
     
     // SPEED: Ultra-fast variant analysis with optimized data structures
