@@ -26,29 +26,39 @@ class InfinityBulkManager {
     }
 
     initializeEventListeners() {
+        // Helper function to safely add event listeners
+        const addListener = (id, event, handler) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener(event, handler);
+            } else {
+                console.warn(`Element with ID '${id}' not found`);
+            }
+        };
+
         // Connection form
-        document.getElementById('connect-btn').addEventListener('click', () => this.testConnection());
+        addListener('connect-btn', 'click', () => this.testConnection());
         
         // Enter key support for connection form
-        document.getElementById('shop-name').addEventListener('keypress', (e) => {
+        addListener('shop-name', 'keypress', (e) => {
             if (e.key === 'Enter') this.testConnection();
         });
-        document.getElementById('access-token').addEventListener('keypress', (e) => {
+        addListener('access-token', 'keypress', (e) => {
             if (e.key === 'Enter') this.testConnection();
         });
         
         // Main interface buttons
-        document.getElementById('load-products-btn').addEventListener('click', () => this.loadProducts());
-        document.getElementById('select-all-btn').addEventListener('click', () => this.selectAll());
-        document.getElementById('clear-selection-btn').addEventListener('click', () => this.clearSelection());
-        document.getElementById('bulk-edit-btn').addEventListener('click', () => this.openBulkModal());
-        document.getElementById('variant-titles-btn').addEventListener('click', () => this.openVariantTitlesModal());
+        addListener('load-products-btn', 'click', () => this.loadProducts());
+        addListener('select-all-btn', 'click', () => this.selectAll());
+        addListener('clear-selection-btn', 'click', () => this.clearSelection());
+        addListener('bulk-edit-btn', 'click', () => this.openBulkModal());
+        addListener('variant-titles-btn', 'click', () => this.openVariantTitlesModal());
         
         // Collection filter (NOVO FILTRO SIMPLES)
-        document.getElementById('collection-filter').addEventListener('change', () => this.filterByCollection());
+        addListener('collection-filter', 'change', () => this.filterByCollection());
         
         // Header select all checkbox
-        document.getElementById('select-all-checkbox').addEventListener('change', (e) => {
+        addListener('select-all-checkbox', 'change', (e) => {
             if (e.target.checked) {
                 this.selectAll();
             } else {
@@ -57,31 +67,31 @@ class InfinityBulkManager {
         });
         
         // Bulk modal controls
-        document.getElementById('close-modal').addEventListener('click', () => this.closeBulkModal());
-        document.getElementById('cancel-bulk').addEventListener('click', () => this.closeBulkModal());
-        document.getElementById('bulk-edit-form').addEventListener('submit', (e) => this.submitBulkEdit(e));
+        addListener('close-modal', 'click', () => this.closeBulkModal());
+        addListener('cancel-bulk', 'click', () => this.closeBulkModal());
+        addListener('bulk-edit-form', 'submit', (e) => this.submitBulkEdit(e));
         
         // Variant titles modal controls
-        document.getElementById('close-variant-titles-modal').addEventListener('click', () => this.closeVariantTitlesModal());
-        document.getElementById('cancel-variant-titles').addEventListener('click', () => this.closeVariantTitlesModal());
-        document.getElementById('load-variant-data-btn').addEventListener('click', () => this.loadVariantData());
-        document.getElementById('apply-variant-changes').addEventListener('click', () => this.applyVariantChanges());
+        addListener('close-variant-titles-modal', 'click', () => this.closeVariantTitlesModal());
+        addListener('cancel-variant-titles', 'click', () => this.closeVariantTitlesModal());
+        addListener('load-variant-data-btn', 'click', () => this.loadVariantData());
+        addListener('apply-variant-changes', 'click', () => this.applyVariantChanges());
         
         // Tab controls
-        document.getElementById('tab-titles').addEventListener('click', () => this.switchTab('titles'));
-        document.getElementById('tab-values').addEventListener('click', () => this.switchTab('values'));
+        addListener('tab-titles', 'click', () => this.switchTab('titles'));
+        addListener('tab-values', 'click', () => this.switchTab('values'));
         
         // Load scope controls
-        document.getElementById('load-scope-all').addEventListener('change', () => this.updateLoadScopeInfo());
-        document.getElementById('load-scope-selected').addEventListener('change', () => this.updateLoadScopeInfo());
+        addListener('load-scope-all', 'change', () => this.updateLoadScopeInfo());
+        addListener('load-scope-selected', 'change', () => this.updateLoadScopeInfo());
         
         // Results modal controls
-        document.getElementById('close-results-modal').addEventListener('click', () => this.closeResultsModal());
+        addListener('close-results-modal', 'click', () => this.closeResultsModal());
         
-        // Progress modal controls
-        document.getElementById('close-progress-modal').addEventListener('click', () => this.closeProgressModal());
-        document.getElementById('cancel-progress').addEventListener('click', () => this.cancelProgress());
-        document.getElementById('hide-progress').addEventListener('click', () => this.hideProgressModal());
+        // Progress modal controls (these elements don't exist in current HTML)
+        // addListener('close-progress-modal', 'click', () => this.closeProgressModal());
+        // addListener('cancel-progress', 'click', () => this.cancelProgress());
+        // addListener('hide-progress', 'click', () => this.hideProgressModal());
         
         // Enable/disable form fields based on checkboxes
         this.setupFormFieldToggles();
@@ -113,15 +123,19 @@ class InfinityBulkManager {
     }
 
     setupModalClickOutside() {
-        const modals = ['bulk-modal', 'variant-titles-modal', 'results-modal', 'progress-modal'];
+        const modals = ['bulk-modal', 'variant-titles-modal', 'results-modal'];
         
         modals.forEach(modalId => {
             const modal = document.getElementById(modalId);
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    this.closeModal(modalId);
-                }
-            });
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        this.closeModal(modalId);
+                    }
+                });
+            } else {
+                console.warn(`Modal with ID '${modalId}' not found`);
+            }
         });
     }
 
@@ -418,7 +432,7 @@ class InfinityBulkManager {
         
         this.products.forEach(product => {
             const row = document.createElement('tr');
-            row.className = 'product-row checkbox-row border-b hover:bg-gray-50';
+            row.className = 'product-row checkbox-row border-b border-gray-700 hover:bg-gray-800 text-gray-300';
             row.dataset.productId = product.id;
             
             // Calculate total inventory
@@ -441,7 +455,7 @@ class InfinityBulkManager {
             
             row.innerHTML = `
                 <td class="p-3 w-12">
-                    <input type="checkbox" class="product-checkbox checkbox-large" 
+                    <input type="checkbox" class="product-checkbox checkbox-large accent-orange-400" 
                            data-product-id="${product.id}" 
                            ${this.selectedProducts.has(product.id.toString()) ? 'checked' : ''}>
                 </td>
@@ -449,18 +463,18 @@ class InfinityBulkManager {
                     <div class="flex items-center">
                         ${product.image ? `<img src="${product.image.src}" class="w-10 h-10 object-cover rounded mr-3">` : ''}
                         <div>
-                            <div class="font-medium text-gray-900">${product.title}</div>
-                            <div class="text-sm text-gray-500">ID: ${product.id}</div>
-                            ${product.variants?.length > 1 ? `<div class="text-xs text-blue-600">${product.variants.length} variantes</div>` : ''}
+                            <div class="font-medium text-white">${product.title}</div>
+                            <div class="text-sm text-gray-400">ID: ${product.id}</div>
+                            ${product.variants?.length > 1 ? `<div class="text-xs text-orange-400">${product.variants.length} variantes</div>` : ''}
                         </div>
                     </div>
                 </td>
                 <td class="p-3">
-                    <div class="text-gray-900">R$ ${price}</div>
-                    ${comparePrice ? `<div class="text-sm text-gray-500 line-through">R$ ${comparePrice}</div>` : ''}
+                    <div class="text-orange-300 font-medium">R$ ${price}</div>
+                    ${comparePrice ? `<div class="text-sm text-gray-400 line-through">R$ ${comparePrice}</div>` : ''}
                 </td>
                 <td class="p-3">
-                    <span class="px-2 py-1 text-xs rounded-full ${totalInventory > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                    <span class="px-2 py-1 text-xs rounded-full ${totalInventory > 0 ? 'bg-green-800 text-green-200 border border-green-600' : 'bg-red-800 text-red-200 border border-red-600'}">
                         ${totalInventory}
                     </span>
                 </td>
@@ -470,7 +484,7 @@ class InfinityBulkManager {
                     </span>
                 </td>
                 <td class="p-3">
-                    <div class="text-sm text-gray-600">
+                    <div class="text-sm text-gray-300">
                         ${product.options && product.options.length > 0 ? 
                             product.options.map(opt => opt.name).join(', ') : 
                             'Nenhuma'
@@ -605,10 +619,10 @@ class InfinityBulkManager {
 
     getStatusColor(status) {
         switch (status) {
-            case 'active': return 'bg-green-100 text-green-800';
-            case 'draft': return 'bg-yellow-100 text-yellow-800';
-            case 'archived': return 'bg-gray-100 text-gray-800';
-            default: return 'bg-gray-100 text-gray-800';
+            case 'active': return 'bg-green-800 text-green-200 border border-green-600';
+            case 'draft': return 'bg-yellow-800 text-yellow-200 border border-yellow-600';
+            case 'archived': return 'bg-gray-800 text-gray-200 border border-gray-600';
+            default: return 'bg-gray-800 text-gray-200 border border-gray-600';
         }
     }
 
@@ -2036,5 +2050,9 @@ class InfinityBulkManager {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
-    new InfinityBulkManager();
+    try {
+        new InfinityBulkManager();
+    } catch (error) {
+        console.error('Error initializing Infinity Bulk Manager:', error);
+    }
 });

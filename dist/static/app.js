@@ -418,7 +418,7 @@ class InfinityBulkManager {
         
         this.products.forEach(product => {
             const row = document.createElement('tr');
-            row.className = 'product-row checkbox-row border-b hover:bg-gray-50';
+            row.className = 'product-row checkbox-row border-b border-gray-700 hover:bg-gray-800 text-gray-300';
             row.dataset.productId = product.id;
             
             // Calculate total inventory
@@ -441,7 +441,7 @@ class InfinityBulkManager {
             
             row.innerHTML = `
                 <td class="p-3 w-12">
-                    <input type="checkbox" class="product-checkbox checkbox-large" 
+                    <input type="checkbox" class="product-checkbox checkbox-large accent-orange-400" 
                            data-product-id="${product.id}" 
                            ${this.selectedProducts.has(product.id.toString()) ? 'checked' : ''}>
                 </td>
@@ -449,18 +449,18 @@ class InfinityBulkManager {
                     <div class="flex items-center">
                         ${product.image ? `<img src="${product.image.src}" class="w-10 h-10 object-cover rounded mr-3">` : ''}
                         <div>
-                            <div class="font-medium text-gray-900">${product.title}</div>
-                            <div class="text-sm text-gray-500">ID: ${product.id}</div>
-                            ${product.variants?.length > 1 ? `<div class="text-xs text-blue-600">${product.variants.length} variantes</div>` : ''}
+                            <div class="font-medium text-white">${product.title}</div>
+                            <div class="text-sm text-gray-400">ID: ${product.id}</div>
+                            ${product.variants?.length > 1 ? `<div class="text-xs text-orange-400">${product.variants.length} variantes</div>` : ''}
                         </div>
                     </div>
                 </td>
                 <td class="p-3">
-                    <div class="text-gray-900">R$ ${price}</div>
-                    ${comparePrice ? `<div class="text-sm text-gray-500 line-through">R$ ${comparePrice}</div>` : ''}
+                    <div class="text-orange-300 font-medium">R$ ${price}</div>
+                    ${comparePrice ? `<div class="text-sm text-gray-400 line-through">R$ ${comparePrice}</div>` : ''}
                 </td>
                 <td class="p-3">
-                    <span class="px-2 py-1 text-xs rounded-full ${totalInventory > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                    <span class="px-2 py-1 text-xs rounded-full ${totalInventory > 0 ? 'bg-green-800 text-green-200 border border-green-600' : 'bg-red-800 text-red-200 border border-red-600'}">
                         ${totalInventory}
                     </span>
                 </td>
@@ -470,7 +470,7 @@ class InfinityBulkManager {
                     </span>
                 </td>
                 <td class="p-3">
-                    <div class="text-sm text-gray-600">
+                    <div class="text-sm text-gray-300">
                         ${product.options && product.options.length > 0 ? 
                             product.options.map(opt => opt.name).join(', ') : 
                             'Nenhuma'
@@ -605,10 +605,10 @@ class InfinityBulkManager {
 
     getStatusColor(status) {
         switch (status) {
-            case 'active': return 'bg-green-100 text-green-800';
-            case 'draft': return 'bg-yellow-100 text-yellow-800';
-            case 'archived': return 'bg-gray-100 text-gray-800';
-            default: return 'bg-gray-100 text-gray-800';
+            case 'active': return 'bg-green-800 text-green-200 border border-green-600';
+            case 'draft': return 'bg-yellow-800 text-yellow-200 border border-yellow-600';
+            case 'archived': return 'bg-gray-800 text-gray-200 border border-gray-600';
+            default: return 'bg-gray-800 text-gray-200 border border-gray-600';
         }
     }
 
