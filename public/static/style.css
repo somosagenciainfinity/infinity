@@ -1,12 +1,14 @@
 /* 
 ===============================================
 INFINITY BULK MANAGER - IDENTIDADE VISUAL PROFISSIONAL
+VERSÃO 2.0 - MÁXIMA ESPECIFICIDADE CSS
 ===============================================
 Transformação visual moderna seguindo padrão:
 - Fundo PRETO: Modais, estruturas principais
 - Fundo BRANCO: Inputs, formulários
 - Botões LARANJA: #ff6b35
 - Estilo extremamente profissional
+- FORÇA TOTAL: !important em tudo para sobrescrever TailwindCSS
 ===============================================
 */
 
@@ -14,51 +16,65 @@ Transformação visual moderna seguindo padrão:
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 * {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
 /* ===== BODY E ESTRUTURA PRINCIPAL - FUNDO PRETO ===== */
-body.bg-gray-100 {
+html {
   background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%) !important;
-  color: #ffffff !important;
-  min-height: 100vh;
 }
 
-.container {
+body, 
+body.bg-gray-100,
+body.bg-gray-100.min-h-screen {
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%) !important;
+  color: #ffffff !important;
+  min-height: 100vh !important;
+}
+
+.container,
+.container.mx-auto,
+.container.mx-auto.px-4.py-8 {
   background: transparent !important;
 }
 
 /* ===== HEADER PRINCIPAL - IDENTIDADE PROFISSIONAL ===== */
-.text-center.py-8.mb-8 {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-  border-radius: 16px;
+.text-center.py-8.mb-8,
+div.text-center.py-8.mb-8 {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%) !important;
+  border-radius: 16px !important;
   padding: 3rem 2rem !important;
   margin-bottom: 2rem !important;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-  border: 1px solid #333;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid #333 !important;
 }
 
+h1.text-4xl.font-bold.text-gray-800,
 .text-4xl.font-bold.text-gray-800 {
   color: #ffffff !important;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
   font-weight: 800 !important;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.5px !important;
 }
 
-.text-gray-600.text-lg {
+.text-gray-600.text-lg,
+div.text-gray-600.text-lg,
+p.text-gray-600.text-lg {
   color: #b0b0b0 !important;
-  font-weight: 400;
+  font-weight: 400 !important;
 }
 
-.text-gray-600.text-lg p {
+.text-gray-600.text-lg p,
+.text-gray-600 p {
   color: #b0b0b0 !important;
 }
 
 /* ===== ÍCONE INFINITY - LARANJA VIBRANTE ===== */
-.fas.fa-infinity.text-green-600 {
+.fas.fa-infinity.text-green-600,
+i.fas.fa-infinity.text-green-600 {
   color: #ff6b35 !important;
-  filter: drop-shadow(0 4px 8px rgba(255, 107, 53, 0.3));
-  animation: pulse 2s ease-in-out infinite alternate;
+  filter: drop-shadow(0 4px 8px rgba(255, 107, 53, 0.3)) !important;
+  animation: pulse 2s ease-in-out infinite alternate !important;
 }
 
 @keyframes pulse {
@@ -67,44 +83,54 @@ body.bg-gray-100 {
 }
 
 /* ===== STATUS DE CONEXÃO ===== */
-.bg-green-100.text-green-800 {
+.bg-green-100.text-green-800,
+span.bg-green-100.text-green-800 {
   background: linear-gradient(135deg, #ff6b35, #f7931e) !important;
   color: #ffffff !important;
-  font-weight: 600;
-  box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
-  border: none;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3) !important;
+  border: none !important;
 }
 
 /* ===== CONTAINERS E CARDS - FUNDO PRETO PROFISSIONAL ===== */
-.bg-white.rounded-lg.shadow-md {
+.bg-white.rounded-lg.shadow-md,
+div.bg-white.rounded-lg.shadow-md {
   background: linear-gradient(135deg, #1a1a1a 0%, #262626 100%) !important;
   border: 1px solid #333 !important;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3) !important;
   border-radius: 16px !important;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px) !important;
 }
 
-.bg-white.rounded-lg.shadow-md.p-6 {
+.bg-white.rounded-lg.shadow-md.p-6,
+div.bg-white.rounded-lg.shadow-md.p-6 {
   padding: 2rem !important;
 }
 
 /* ===== TÍTULOS E TEXTOS ===== */
+h2.text-xl.font-bold.text-gray-800,
+h3.text-lg.font-bold.text-gray-800,
+h3.text-2xl.font-bold.text-gray-800,
 .text-xl.font-bold.text-gray-800,
 .text-lg.font-bold.text-gray-800,
 .text-2xl.font-bold.text-gray-800 {
   color: #ffffff !important;
   font-weight: 700 !important;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.5rem !important;
 }
 
+label.block.text-sm.font-medium.text-gray-700,
 .text-sm.font-medium.text-gray-700,
 .block.text-sm.font-medium.text-gray-700 {
   color: #e0e0e0 !important;
-  font-weight: 500;
+  font-weight: 500 !important;
 }
 
 .text-gray-600,
-.text-sm.text-gray-600 {
+.text-sm.text-gray-600,
+div.text-gray-600,
+div.text-sm.text-gray-600,
+p.text-gray-600 {
   color: #b0b0b0 !important;
 }
 
@@ -119,9 +145,9 @@ select {
   border: 2px solid #e0e0e0 !important;
   border-radius: 12px !important;
   padding: 1rem 1.25rem !important;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
 input[type="text"]:focus,
@@ -131,8 +157,8 @@ textarea:focus,
 select:focus {
   border-color: #ff6b35 !important;
   box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1) !important;
-  outline: none;
-  transform: translateY(-1px);
+  outline: none !important;
+  transform: translateY(-1px) !important;
 }
 
 input[type="text"]:disabled,
@@ -148,72 +174,84 @@ select:disabled {
 /* ===== BOTÕES PRINCIPAIS - LARANJA PROFISSIONAL ===== */
 button {
   border-radius: 12px !important;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  border: none;
-  text-transform: none;
-  letter-spacing: 0.25px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+  border: none !important;
+  text-transform: none !important;
+  letter-spacing: 0.25px !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* Botão Conectar - Laranja Principal */
+/* Botão Conectar - Laranja Principal - MÁXIMA ESPECIFICIDADE */
+button.bg-blue-600.text-white,
 .bg-blue-600.text-white,
-#connect-btn {
+#connect-btn,
+button#connect-btn {
   background: linear-gradient(135deg, #ff6b35, #f7931e) !important;
   color: #ffffff !important;
   border: none !important;
 }
 
+button.bg-blue-600.text-white:hover,
 .bg-blue-600.text-white:hover,
-#connect-btn:hover {
+#connect-btn:hover,
+button#connect-btn:hover {
   background: linear-gradient(135deg, #f7931e, #ff6b35) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3);
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3) !important;
 }
 
 /* Botões de Ação - Variações Profissionais */
+button.bg-green-600.text-white,
 .bg-green-600.text-white {
   background: linear-gradient(135deg, #10b981, #059669) !important;
   color: #ffffff !important;
 }
 
+button.bg-green-600.text-white:hover,
 .bg-green-600.text-white:hover {
   background: linear-gradient(135deg, #059669, #10b981) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3) !important;
 }
 
+button.bg-purple-600.text-white,
 .bg-purple-600.text-white {
   background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
   color: #ffffff !important;
 }
 
+button.bg-purple-600.text-white:hover,
 .bg-purple-600.text-white:hover {
   background: linear-gradient(135deg, #7c3aed, #8b5cf6) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(139, 92, 246, 0.3);
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 16px rgba(139, 92, 246, 0.3) !important;
 }
 
+button.bg-orange-600.text-white,
 .bg-orange-600.text-white {
   background: linear-gradient(135deg, #ff6b35, #f7931e) !important;
   color: #ffffff !important;
 }
 
+button.bg-orange-600.text-white:hover,
 .bg-orange-600.text-white:hover {
   background: linear-gradient(135deg, #f7931e, #ff6b35) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3);
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3) !important;
 }
 
+button.bg-gray-600.text-white,
 .bg-gray-600.text-white {
   background: linear-gradient(135deg, #6b7280, #4b5563) !important;
   color: #ffffff !important;
 }
 
+button.bg-gray-600.text-white:hover,
 .bg-gray-600.text-white:hover {
   background: linear-gradient(135deg, #4b5563, #6b7280) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(107, 114, 128, 0.3);
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 16px rgba(107, 114, 128, 0.3) !important;
 }
 
 /* Botões Desabilitados */
@@ -229,15 +267,17 @@ table {
   background: transparent !important;
 }
 
-thead.bg-gray-50 {
+thead.bg-gray-50,
+.bg-gray-50 {
   background: linear-gradient(135deg, #2a2a2a, #333333) !important;
 }
 
+th.text-xs.font-medium.text-gray-500,
 .text-xs.font-medium.text-gray-500 {
   color: #e0e0e0 !important;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
 }
 
 tbody.divide-y.divide-gray-200 {
@@ -251,38 +291,38 @@ tbody.divide-y.divide-gray-200 {
 /* Linhas da tabela */
 .product-row {
   background: rgba(42, 42, 42, 0.5) !important;
-  transition: all 0.3s ease;
-  border: 1px solid transparent;
+  transition: all 0.3s ease !important;
+  border: 1px solid transparent !important;
 }
 
 .product-row:hover {
   background: rgba(255, 107, 53, 0.1) !important;
-  border-color: rgba(255, 107, 53, 0.2);
-  transform: translateX(2px);
+  border-color: rgba(255, 107, 53, 0.2) !important;
+  transform: translateX(2px) !important;
 }
 
 .product-row.selected {
   background: rgba(255, 107, 53, 0.15) !important;
-  border-color: #ff6b35;
-  box-shadow: 0 0 0 1px #ff6b35;
+  border-color: #ff6b35 !important;
+  box-shadow: 0 0 0 1px #ff6b35 !important;
 }
 
 .product-row td {
   color: #ffffff !important;
   padding: 1rem 0.75rem !important;
-  font-weight: 500;
+  font-weight: 500 !important;
 }
 
 /* ===== CHECKBOXES PROFISSIONAIS ===== */
 input[type="checkbox"] {
-  appearance: none;
+  appearance: none !important;
   width: 20px !important;
   height: 20px !important;
-  background: #ffffff;
-  border: 2px solid #e0e0e0;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  background: #ffffff !important;
+  border: 2px solid #e0e0e0 !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
 }
 
 input[type="checkbox"]:checked {
@@ -291,13 +331,13 @@ input[type="checkbox"]:checked {
 }
 
 input[type="checkbox"]:checked::after {
-  content: '✓';
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
-  position: absolute;
-  top: 1px;
-  left: 3px;
+  content: '✓' !important;
+  color: white !important;
+  font-size: 12px !important;
+  font-weight: bold !important;
+  position: absolute !important;
+  top: 1px !important;
+  left: 3px !important;
 }
 
 .checkbox-large {
@@ -307,7 +347,7 @@ input[type="checkbox"]:checked::after {
 /* ===== MODAL DE EDIÇÃO - FUNDO PRETO LUXO ===== */
 .fixed.inset-0.bg-black.bg-opacity-50 {
   background: rgba(0, 0, 0, 0.8) !important;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px) !important;
 }
 
 #bulk-modal .bg-white.rounded-lg {
@@ -327,10 +367,6 @@ input[type="checkbox"]:checked::after {
 }
 
 /* ===== SEÇÕES DE FILTRO ===== */
-.bg-gray-50 {
-  background: linear-gradient(135deg, #2a2a2a, #333333) !important;
-}
-
 .border-t.border-gray-200 {
   border-color: #444 !important;
 }
@@ -362,27 +398,27 @@ input[type="checkbox"]:checked::after {
 /* ===== LABELS E TEXTOS ===== */
 label {
   color: #e0e0e0 !important;
-  font-weight: 500;
+  font-weight: 500 !important;
 }
 
 /* ===== SCROLLBAR PROFISSIONAL ===== */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 8px !important;
+  height: 8px !important;
 }
 
 ::-webkit-scrollbar-track {
-  background: #2a2a2a;
-  border-radius: 4px;
+  background: #2a2a2a !important;
+  border-radius: 4px !important;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #ff6b35, #f7931e);
-  border-radius: 4px;
+  background: linear-gradient(135deg, #ff6b35, #f7931e) !important;
+  border-radius: 4px !important;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #f7931e, #ff6b35);
+  background: linear-gradient(135deg, #f7931e, #ff6b35) !important;
 }
 
 /* ===== RESPONSIVIDADE E MICRO-INTERAÇÕES ===== */
@@ -407,7 +443,7 @@ label {
 }
 
 .bg-white.rounded-lg.shadow-md {
-  animation: fadeIn 0.6s ease-out;
+  animation: fadeIn 0.6s ease-out !important;
 }
 
 /* ===== ESTILOS ESPECÍFICOS PARA ELEMENTOS ÚNICOS ===== */
@@ -416,26 +452,36 @@ label {
 .px-4.py-2.rounded-full {
   border-radius: 50px !important;
   padding: 0.75rem 1.5rem !important;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 0.75rem;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  font-size: 0.75rem !important;
 }
 
 /* Informações de seleção */
 #selection-info {
-  background: rgba(255, 107, 53, 0.1);
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 107, 53, 0.2);
+  background: rgba(255, 107, 53, 0.1) !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 107, 53, 0.2) !important;
   color: #ffffff !important;
-  font-weight: 500;
+  font-weight: 500 !important;
 }
 
 /* Contadores de produtos */
 #products-count {
   color: #b0b0b0 !important;
-  font-weight: 500;
+  font-weight: 500 !important;
 }
 
-/* ===== FINAL DOS ESTILOS PROFISSIONAIS ===== */
+/* ===== FORÇA TOTAL PARA SOBRESCREVER TAILWIND ===== */
+.container.mx-auto.px-4.py-8 {
+  background: transparent !important;
+}
+
+.text-center.py-8.mb-8 {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%) !important;
+  color: #ffffff !important;
+}
+
+/* ===== FINAL DOS ESTILOS PROFISSIONAIS COM MÁXIMA FORÇA ===== */

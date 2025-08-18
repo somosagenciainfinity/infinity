@@ -546,6 +546,7 @@ var ie=(e,t,a)=>(s,o)=>{let r=-1;return n(0);async function n(i){if(i<=r)throw n
         <title>Infinity Bulk Manager - Gerenciamento em Massa de Produtos Shopify</title>
         <script src="https://cdn.tailwindcss.com"><\/script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+        <link href="/static/style.css" rel="stylesheet">
         <style>
             .checkbox-row:hover { background-color: #f3f4f6; }
             .checkbox-large { transform: scale(1.2); }
