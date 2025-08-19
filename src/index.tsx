@@ -705,7 +705,8 @@ app.get('/test-modal-diagnostico', (c) => {
     <title>Teste - Modal de Diagnóstico Corrigido</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
+    <link rel="stylesheet" href="/static/style.css">
+<style>
         .loading-spinner { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
@@ -1148,6 +1149,7 @@ app.get('/test-variant-fix', (c) => {
 <head>
     <title>Teste - Variant Values Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body class="p-8">
     <h1 class="text-2xl font-bold mb-4">🧪 Teste da Correção de Valores de Variantes</h1>
@@ -2078,7 +2080,8 @@ app.get('/', (c) => {
         <title>Infinity Bulk Manager - Gerenciamento em Massa de Produtos Shopify</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
-        <style>
+        <link rel="stylesheet" href="/static/style.css">
+<style>
             .checkbox-row:hover { background-color: #f3f4f6; }
             .checkbox-large { transform: scale(1.2); }
             .product-row { cursor: pointer; transition: all 0.2s; }
