@@ -1,0 +1,260 @@
+/* OVERRIDE CRÍTICO - FORÇA MÁXIMA */
+
+/* CORES ESPECÍFICAS PARA TABELA DE PRODUTOS */
+/* Título do produto - LARANJA */
+.product-row td:nth-child(2) > div:first-child,
+.product-row td:nth-child(2) > p:first-child,
+.product-row td:nth-child(2) > span:first-child {
+  color: #ff6b35 !important;
+  font-weight: 600 !important;
+}
+
+/* ID do produto - BRANCO */
+.product-row td:nth-child(2) .text-xs,
+.product-row td:nth-child(2) > div:last-child,
+.product-row td:nth-child(2) small {
+  color: #ffffff !important;
+}
+
+/* Preço normal - LARANJA */
+.product-row td:nth-child(3) > div:first-child:not(.line-through),
+.product-row td:nth-child(3) > span:first-child:not(.line-through) {
+  color: #ff6b35 !important;
+  font-weight: 600 !important;
+}
+
+/* Preço riscado - BRANCO */
+.product-row td:nth-child(3) .line-through,
+.product-row td:nth-child(3) s,
+.product-row td:nth-child(3) del {
+  color: #ffffff !important;
+  text-decoration: line-through !important;
+}
+
+/* Outros textos da tabela - BRANCO */
+.product-row td:nth-child(4),
+.product-row td:nth-child(5),
+.product-row td:nth-child(6) {
+  color: #ffffff !important;
+}
+
+/* INPUTS BLOQUEADOS POR PADRÃO, EXCETO OS DE CONEXÃO */
+input:disabled:not([type="checkbox"]),
+textarea:disabled,
+select:disabled {
+  background: #e0e0e0 !important;
+  color: #666666 !important;
+  opacity: 0.7 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+
+/* INPUTS HABILITADOS FUNCIONAM NORMALMENTE */
+input:not(:disabled):not([type="checkbox"]),
+textarea:not(:disabled),
+select:not(:disabled) {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #cccccc !important;
+  pointer-events: auto !important;
+  user-select: text !important;
+  cursor: text !important;
+  opacity: 1 !important;
+  z-index: 10 !important;
+  position: relative !important;
+}
+
+/* FORÇA CAMPOS DE CONEXÃO A SEMPRE FUNCIONAREM */
+#shop-name,
+#access-token {
+  background: #ffffff !important;
+  color: #000000 !important;
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: text !important;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+}
+
+/* GARANTIR QUE BOTÕES FUNCIONEM */
+button {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+/* NÃO BLOQUEAR ELEMENTOS HIDDEN */
+.hidden {
+  pointer-events: none !important;
+  display: none !important;
+}
+
+/* Remove qualquer pseudo-elemento bloqueador */
+*::before,
+*::after {
+  pointer-events: none !important;
+}
+
+/* Exceto para elementos que precisam */
+button::before,
+button::after,
+a::before,
+a::after {
+  pointer-events: auto !important;
+}
+
+/* TEXTOS ESPECÍFICOS DA MODAL DE VARIANTES */
+/* Texto cinza para "Carregar variantes de:" */
+#variant-titles-modal h5,
+#variant-titles-modal .text-sm.font-medium.text-blue-800 {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Radio buttons labels - cinza como "Disponível após carregar" */
+#variant-titles-modal label.flex.items-center.text-sm {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Texto "Disponível após carregar variantes existentes" */
+.text-xs.text-green-600 {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* INPUTS ESPECÍFICOS EM VALORES E PREÇOS */
+#existing-values-list input[type="text"],
+#existing-values-list input[type="number"],
+#content-values input[type="text"],
+#content-values input[type="number"] {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #ff6b35 !important;
+  padding: 0.5rem !important;
+}
+
+/* Labels dentro dos containers de valores */
+#existing-values-list label,
+#content-values label {
+  color: #ff6b35 !important;
+  font-weight: 500 !important;
+  margin-bottom: 0.25rem !important;
+  display: block !important;
+}
+
+/* Texto "Valor Atual" e similares - AZUL CLARO como na imagem */
+.bg-blue-50.text-blue-700,
+.text-blue-700 {
+  background: transparent !important;
+  color: #60a5fa !important;
+  padding: 0.25rem 0.5rem !important;
+  border: 1px solid #60a5fa !important;
+  border-radius: 4px !important;
+  font-size: 0.75rem !important;
+}
+
+/* Títulos de cada container de valor (P, M, G, etc) - LARANJA FORTE */
+#existing-values-list .text-lg.font-bold,
+#content-values .text-lg.font-bold {
+  color: #ff6b35 !important;
+  font-size: 1.25rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* Nome da opção (Size, Estilo) - LARANJA DESTAQUE */
+#existing-options-list h5,
+#existing-options-list .text-lg.font-bold,
+#content-titles h5,
+#content-titles .text-lg.font-bold {
+  color: #ff6b35 !important;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* Valores Atuais - texto mais claro */
+#existing-options-list .text-sm,
+#content-titles .text-sm {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* CONTAINERS EM TÍTULOS DAS OPÇÕES */
+#existing-options-list > div,
+#content-titles > div {
+  background: #1a1a1a !important;
+  border: 1px solid rgba(255, 107, 53, 0.2) !important;
+  padding: 1.5rem !important;
+  margin-bottom: 1rem !important;
+  border-radius: 0px !important;
+}
+
+/* Opção Atual e Novo Nome - TÍTULOS DAS OPÇÕES */
+#existing-options-list label,
+#existing-options-list .font-medium,
+#content-titles label,
+#content-titles .font-medium {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 500 !important;
+  margin-bottom: 0.5rem !important;
+  display: block !important;
+}
+
+/* Input com valor atual (ex: "Size") - DESTAQUE ESPECIAL */
+#existing-options-list input[readonly],
+#existing-options-list input:disabled {
+  background: #333333 !important;
+  color: #ff6b35 !important;
+  border: 1px solid #ff6b35 !important;
+  font-weight: 600 !important;
+  padding: 0.75rem !important;
+}
+
+/* FUNDO DOS CONTAINERS EM VALORES E PREÇOS */
+#existing-values-list > div,
+#content-values > div > div {
+  background: #1a1a1a !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  padding: 1rem !important;
+  border-radius: 0px !important;
+}
+
+/* Container individual de valores - FUNDO ESCURO */
+.bg-white.border.border-gray-200.rounded-lg.p-4,
+#existing-values-list .bg-white,
+#content-values .bg-white {
+  background: #2a2a2a !important;
+  border: 1px solid rgba(255, 107, 53, 0.2) !important;
+  padding: 1rem !important;
+}
+
+/* Labels dos valores - TEXTO LARANJA */
+#existing-values-list h5,
+#existing-values-list .font-semibold,
+#existing-values-list .text-gray-800,
+#content-values h5,
+#content-values .font-semibold {
+  color: #ff6b35 !important;
+  font-weight: 600 !important;
+}
+
+/* Texto "Valores Encontrados" - MAIS CLARO */
+#existing-values-list .text-sm.text-gray-600,
+#content-values .text-sm.text-gray-600,
+.text-gray-600:contains("Valores Encontrados") {
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-weight: 500 !important;
+}
+
+/* "Em X produtos" - texto secundário */
+#existing-options-list .text-xs.text-gray-500,
+#content-titles .text-xs.text-gray-500 {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Container de cada valor individual */
+#existing-values-list .flex.items-center.gap-2,
+#content-values .flex.items-center.gap-2 {
+  background: #1a1a1a !important;
+  padding: 0.5rem !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  margin-bottom: 0.5rem !important;
+}

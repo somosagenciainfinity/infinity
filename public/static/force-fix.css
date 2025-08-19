@@ -1,0 +1,187 @@
+/* FORÇA MÁXIMA - CORREÇÕES DEFINITIVAS */
+
+/* ==== TABS/ABAS - FORÇAR LARANJA QUANDO ATIVO ==== */
+#tab-titles.border-b-2.border-blue-600,
+#tab-titles.text-blue-600,
+#tab-values.border-b-2.border-blue-600,
+#tab-values.text-blue-600,
+button[id*="tab-"].border-blue-600,
+button[id*="tab-"].text-blue-600 {
+  color: #ff6b35 !important;
+  border-bottom: 2px solid #ff6b35 !important;
+}
+
+#tab-titles.border-b-2.border-blue-600 i,
+#tab-values.border-b-2.border-blue-600 i,
+button[id*="tab-"].text-blue-600 i {
+  color: #ff6b35 !important;
+}
+
+/* ==== TÍTULOS DAS OPÇÕES - VISIBILIDADE ==== */
+#existing-options-list {
+  background: #000000 !important;
+}
+
+#existing-options-list > div {
+  background: #1a1a1a !important;
+  border: 1px solid rgba(255, 107, 53, 0.3) !important;
+  padding: 1.5rem !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Título principal (Size, Estilo, etc) */
+#existing-options-list h5,
+#existing-options-list .text-lg.font-bold,
+#existing-options-list > div > h5,
+#existing-options-list > div > .font-bold:first-child {
+  color: #ff6b35 !important;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+}
+
+/* Labels "Opção Atual" e "Novo Nome" */
+#existing-options-list label {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 500 !important;
+  display: block !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* Input readonly com valor atual (Size, Estilo) */
+#existing-options-list input[readonly],
+#existing-options-list input:disabled:not([type="checkbox"]) {
+  background: #333333 !important;
+  color: #ff6b35 !important;
+  border: 2px solid #ff6b35 !important;
+  font-weight: 600 !important;
+  padding: 0.75rem !important;
+  font-size: 1rem !important;
+}
+
+/* Input para novo nome */
+#existing-options-list input:not([readonly]):not(:disabled):not([type="checkbox"]) {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #ff6b35 !important;
+}
+
+/* Texto "em X produtos" */
+#existing-options-list .text-xs.text-gray-500,
+#existing-options-list small {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* ==== VALORES E PREÇOS - VISIBILIDADE ==== */
+#content-values,
+#existing-values-list {
+  background: #000000 !important;
+}
+
+#existing-values-list > div,
+#content-values > div {
+  background: #1a1a1a !important;
+  border: 1px solid rgba(255, 107, 53, 0.3) !important;
+  padding: 1.5rem !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Título da seção (Size) em Valores e Preços */
+#existing-values-list h4,
+#existing-values-list .text-lg.font-bold,
+#content-values h4,
+#content-values .text-lg.font-bold {
+  color: #ff6b35 !important;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+}
+
+/* "Valores Encontrados:" - MAIS CLARO */
+#existing-values-list .text-sm.text-gray-600,
+#content-values .text-sm.text-gray-600,
+#existing-values-list p:contains("Valores"),
+#content-values p:contains("Valores") {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 500 !important;
+}
+
+/* Containers individuais de valores (P, M, G, etc) */
+#existing-values-list .bg-white.border,
+#content-values .bg-white.border,
+#existing-values-list .bg-white.rounded-lg,
+#content-values .bg-white.rounded-lg {
+  background: #2a2a2a !important;
+  border: 1px solid rgba(255, 107, 53, 0.2) !important;
+  padding: 1rem !important;
+}
+
+/* Labels dos valores (P, M, G, GG, etc) */
+#existing-values-list .font-semibold,
+#content-values .font-semibold,
+#existing-values-list h5,
+#content-values h5 {
+  color: #ff6b35 !important;
+  font-size: 1.25rem !important;
+  font-weight: 600 !important;
+}
+
+/* Badge "Valor Atual" */
+.bg-blue-50.text-blue-700,
+.text-blue-700,
+span.text-blue-700 {
+  background: transparent !important;
+  color: #60a5fa !important;
+  padding: 0.25rem 0.5rem !important;
+  border: 1px solid #60a5fa !important;
+  border-radius: 4px !important;
+  font-size: 0.75rem !important;
+}
+
+/* Inputs em Valores e Preços */
+#existing-values-list input[type="text"],
+#existing-values-list input[type="number"],
+#content-values input[type="text"],
+#content-values input[type="number"] {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #ff6b35 !important;
+  padding: 0.5rem !important;
+}
+
+/* ==== FORÇAR CORES NA TABELA DE PRODUTOS ==== */
+/* Título do produto - LARANJA */
+tbody tr td:nth-child(2) > :first-child {
+  color: #ff6b35 !important;
+  font-weight: 600 !important;
+}
+
+/* ID do produto - BRANCO */
+tbody tr td:nth-child(2) .text-xs,
+tbody tr td:nth-child(2) small {
+  color: #ffffff !important;
+}
+
+/* Preço normal - LARANJA */
+tbody tr td:nth-child(3) > :not(.line-through):not(s):not(del) {
+  color: #ff6b35 !important;
+  font-weight: 600 !important;
+}
+
+/* Preço riscado - BRANCO */
+tbody tr td:nth-child(3) .line-through,
+tbody tr td:nth-child(3) s,
+tbody tr td:nth-child(3) del {
+  color: #ffffff !important;
+  opacity: 0.7 !important;
+}
+
+/* ==== CHECKBOXES - GARANTIR CHECK BRANCO ==== */
+input[type="checkbox"]:checked::after {
+  content: '✓' !important;
+  color: #ffffff !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
+}

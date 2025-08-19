@@ -2078,14 +2078,9 @@ app.get('/', (c) => {
         <title>Infinity Bulk Manager - Gerenciamento em Massa de Produtos Shopify</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
-        <style>
-            .checkbox-row:hover { background-color: #f3f4f6; }
-            .checkbox-large { transform: scale(1.2); }
-            .product-row { cursor: pointer; transition: all 0.2s; }
-            .product-row.selected { background-color: #dbeafe; }
-            .loading-spinner { animation: spin 1s linear infinite; }
-            @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        </style>
+        <link href="/static/modern-style.css?v=5.0" rel="stylesheet">
+        <link href="/static/override.css?v=4.0" rel="stylesheet">
+        <link href="/static/force-fix.css?v=1.0" rel="stylesheet">
     </head>
     <body class="bg-gray-100 min-h-screen">
         <div class="container mx-auto px-4 py-8">
@@ -2496,6 +2491,7 @@ app.get('/', (c) => {
 
 
         <script src="/static/app.js"></script>
+        <script src="/static/fix-functions.js"></script>
     </body>
     </html>
   `)
